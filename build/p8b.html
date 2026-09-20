@@ -1,0 +1,136 @@
+<script type="text/babel" data-presets="react">
+/* ══════════════════════════════════════════════════════════════════
+   11.b GUÍA — el manual, ordenado por lo que pasa en el día de
+        trabajo y no por los botones de la app.
+   ══════════════════════════════════════════════════════════════════ */
+const SITUACIONES = [
+  { icon:'users', titulo:'Salí de un comité, consejo o subcomité',
+    obligaciones:'O-01 · O-03 · O-05',
+    pasos:[
+      'Toca (+) y luego Tomar foto: la planilla de asistencia y una foto del espacio.',
+      'Mira la obligación que viene marcada y cámbiala si no corresponde.',
+      'Toca Guardar. La sesión ya quedó registrada y cuenta en el semáforo.'
+    ],
+    despues:'Cuando tengas tiempo, busca esa actividad en el feed de Inicio y toca Acta. Se abre con el orden del día ya armado: en cada punto escribes lo que pasó tal como lo dirías, y «Redactar institucional» lo convierte. Los compromisos se escriben en la tabla con su responsable y su fecha límite.' },
+
+  { icon:'globe', titulo:'Atendí a una persona o a una familia',
+    obligaciones:'O-07 · O-09',
+    pasos:[
+      'Toca (+) y luego Grabar nota.',
+      'Habla normal: «atendí seis familias venezolanas, las orienté por regularización y las remití a salud y al ICBF».',
+      'Al hacer una pausa el dictado se cierra solo y el texto institucional aparece redactado. Toca Guardar.'
+    ],
+    despues:'No escribas nombres ni cédulas de las personas atendidas. La app las reporta por su calidad — «seis núcleos familiares migrantes» —, que es como deben ir en un informe público.' },
+
+  { icon:'file-lock', titulo:'Tramité algo: UNP, PQRS o una alerta',
+    obligaciones:'O-04 · O-08 · O-10',
+    pasos:[
+      'Toca (+), graba la nota o toma foto del acuse de radicación.',
+      'Abre Más detalles y escribe el radicado en su casilla.',
+      'Toca Guardar.'
+    ],
+    despues:'El radicado queda pegado a la actividad y sale impreso en el informe mensual. Es lo que le permite al supervisor verificar el trámite sin tener que pedirte nada más.' },
+
+  { icon:'presentation', titulo:'Me toca exponer avances en el comité',
+    obligaciones:'Todas',
+    pasos:[
+      'Pestaña Entregables.',
+      'Toca Diapositivas ejecutivas.'
+    ],
+    despues:'Sale la presentación armada: portada con el escudo, cifras del mes, semáforo, una lámina por obligación con los logros y las fotos, los compromisos y los próximos pasos. Arriba tienes Imprimir / PDF para proyectarla, o Copiar a Word si quieres retocarla.' },
+
+  { icon:'file-text', titulo:'Llegó el corte de mes y la cuenta de cobro',
+    obligaciones:'Todas',
+    pasos:[
+      'Pestaña Entregables.',
+      'Toca Informe mensual de ejecución.'
+    ],
+    despues:'El informe clasifica solo todo lo que capturaste debajo de cada una de las 11 obligaciones, con la tabla de gestión, el anexo fotográfico y la certificación de cumplimiento. Toca Copiar a Word, pega con Ctrl+V — conserva tablas y fotos — y fírmalo.' },
+
+  { icon:'layout-dashboard', titulo:'Quiero saber si voy bien o voy mal',
+    obligaciones:'Todas',
+    pasos:[
+      'Abre la app. Ya está: arriba está la fila de once puntos.'
+    ],
+    despues:'Verde es meta cumplida, ámbar va en avance, rojo está en riesgo o sin un solo registro. Toca cualquiera para ver qué se hizo en esa obligación, o «Ver todo» para el cuadro completo. Si hay un compromiso vencido o una obligación abandonada, el aviso ámbar aparece antes del feed.' },
+
+  { icon:'wifi-off', titulo:'Estoy en vereda y no hay señal',
+    obligaciones:'Todas',
+    pasos:[
+      'Captura igual: foto, nota, guardar.'
+    ],
+    despues:'La app no necesita internet para funcionar. Todo queda en el teléfono y los documentos se generan sin conexión. La señal solo hace falta la primera vez que la instalas.' }
+];
+
+function Guia({ abierta, onCerrar }){
+  const { st } = useApp();
+  const faltaConfig = String(st.config.contratista || '').indexOf('«') === 0;
+  return (
+    <Hoja abierta={abierta} onCerrar={onCerrar} ancho="max-w-3xl"
+          titulo="Guía de uso" sub="Qué hacer en cada situación del día">
+      <div className="space-y-3">
+        {faltaConfig && (
+          <div className="rounded-xl border border-fucsia/30 bg-fucsiasoft p-3.5">
+            <p className="font-display text-[13.5px] font-bold text-fucsia">Antes de empezar</p>
+            <p className="mt-1 text-[13px] leading-relaxed text-ink2">
+              Entra a Ajustes y completa tu nombre, tu documento, el número del contrato y el nombre del
+              supervisor. Hasta que lo hagas, las actas y los informes salen con «Nombre del contratista»
+              en lugar del tuyo.
+            </p>
+          </div>
+        )}
+
+        <div className="rounded-xl border border-line bg-surface2 p-3.5">
+          <p className="font-display text-[13.5px] font-bold">La regla de la app</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-ink2">
+            Captura en el momento, redacta después, exporta al final del mes. Nunca escribes el mismo dato
+            dos veces: lo que registras en campo es exactamente lo que aparece luego en el acta, en las
+            diapositivas y en el informe de la cuenta de cobro.
+          </p>
+        </div>
+
+        {SITUACIONES.map((s, i) => (
+          <div key={i} className="rounded-xl border border-line bg-surface p-3.5">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-azuresoft text-azure">
+                <Icon n={s.icon} s={19} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="font-display text-[14.5px] font-bold leading-snug">{s.titulo}</p>
+                <p className="mt-0.5 font-mono text-[11px] text-ink3">{s.obligaciones}</p>
+              </div>
+            </div>
+            <ol className="mt-2.5 space-y-1.5">
+              {s.pasos.map((p, k) => (
+                <li key={k} className="flex gap-2.5 text-[13px] leading-relaxed">
+                  <span className="flex h-5 w-5 flex-none items-center justify-center rounded-full bg-azure font-mono text-[11px] font-medium text-paper">{k+1}</span>
+                  <span>{p}</span>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-2.5 border-t border-line pt-2.5 text-[12.5px] leading-relaxed text-ink2">{s.despues}</p>
+          </div>
+        ))}
+
+        <div className="rounded-xl border border-line bg-surface p-3.5">
+          <p className="font-display text-[14.5px] font-bold">Dónde cae cada cosa</p>
+          <p className="mt-0.5 text-[12.5px] text-ink3">Si dudas de qué obligación marcar, búscala aquí.</p>
+          <div className="mt-2.5 grid gap-1.5">
+            {OBLIGACIONES.map(o => (
+              <div key={o.id} className="flex items-start gap-2.5 border-b border-line pb-1.5 last:border-0">
+                <span className="font-mono text-[11px] text-ink3">{o.cod}</span>
+                <span className="min-w-0 flex-1 text-[12.5px] leading-snug">{o.corto}</span>
+                <span className="flex-none font-mono text-[11px] tnum text-ink3">{o.meta}/mes</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-2.5 text-[12px] leading-relaxed text-ink3">
+            El número de la derecha es la meta mensual con la que se calcula el semáforo. Si no corresponde
+            a tu contrato, se ajusta en el código: pídelo y se cambia.
+          </p>
+        </div>
+      </div>
+    </Hoja>
+  );
+}
+</script>

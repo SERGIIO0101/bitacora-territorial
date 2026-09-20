@@ -223,7 +223,7 @@ const ACCESOS = [
    al pie, a Ajustes y a las etiquetas <meta> que genera build.py. */
 const APP = {
   nombre:'Bitácora Territorial',
-  version:'1.0.0',
+  version:'1.1.0',
   editor:'Lab-S',
   anio:'2026'
 };
@@ -468,7 +468,13 @@ const CONFIG_INICIAL = {
   codigoFormato:'FT-GD-02'
 };
 
-function seed(){
+/* Estado de una bitácora recién instalada: vacía. Las actividades de
+   muestra se cargan a mano desde Ajustes cuando hay que enseñar la app. */
+function estadoInicial(){
+  return { actividades:[], evidencias:[], actas:[], config:CONFIG_INICIAL, tema:'auto', limpiezaDemo:true };
+}
+
+function datosDeEjemplo(){
   const ev = [];
   const mkEv = (actividadId, titulo, sub, tipo, tono) => {
     const e = { id:uid('ev'), actividadId, nombre:titulo, descripcion:sub, tipo, dataUrl: tipo === 'foto' ? evidenciaDemo(titulo, sub, tono) : null, creadoEn:new Date().toISOString(), demo:true };
@@ -619,16 +625,25 @@ function seed(){
   const evsActa = A.filter(x => x.fecha === '2026-09-08').flatMap(x => x.evidencias);
   actas[0].evidencias = evsActa;
 
-  return { actividades:A, evidencias:ev, actas, config:CONFIG_INICIAL, tema:'auto' };
+  return { actividades:A, evidencias:ev, actas };
 }
 
 function cargarEstado(){
   try{
     const raw = localStorage.getItem(LS_KEY);
     if (raw){
-      const p = JSON.parse(raw);
+      let p = JSON.parse(raw);
       if (p && Array.isArray(p.actividades)){
         const config = { ...CONFIG_INICIAL, ...(p.config || {}) };
+        // Una sola vez: se retiran los datos de muestra que traían las versiones
+        // anteriores. Después, lo que se cargue desde Ajustes se respeta.
+        if (!p.limpiezaDemo){
+          p = { ...p,
+            actividades:p.actividades.filter(a => !a.demo),
+            evidencias:(p.evidencias || []).filter(e => !e.demo),
+            actas:(p.actas || []).filter(a => !a.demo),
+            limpiezaDemo:true };
+        }
         // Migración: las versiones previas guardaban el municipio como marcador.
         if (String(config.municipio || '').indexOf('«') === 0){
           config.municipio = CONFIG_INICIAL.municipio;
@@ -637,11 +652,11 @@ function cargarEstado(){
           if (config.secretaria === 'Secretaría de Gobierno y Convivencia Ciudadana')
             config.secretaria = CONFIG_INICIAL.secretaria;
         }
-        return { ...seed(), ...p, config };
+        return { ...estadoInicial(), ...p, config };
       }
     }
   }catch(e){ /* almacenamiento bloqueado: se trabaja en memoria */ }
-  return seed();
+  return estadoInicial();
 }
 function guardarEstado(st){
   try{ localStorage.setItem(LS_KEY, JSON.stringify(st)); return true; }
@@ -1198,7 +1213,11 @@ function Inicio({ mes, setMes }){
       )}
 
       {feed.length === 0
-        ? <Vacio icon="camera" titulo="Sin registros este mes" texto="Toca el botón + y captura la primera evidencia: una foto o una nota dictada bastan."
+        ? <Vacio icon="camera"
+            titulo={st.actividades.length ? 'Sin registros este mes' : 'Tu bitácora está lista'}
+            texto={st.actividades.length
+              ? 'En este período no hay actividades capturadas. Cambia de mes arriba o registra una nueva.'
+              : 'Toca el botón + y captura la primera evidencia: una foto o una nota dictada bastan. La fecha, la hora y la obligación vienen puestas.'}
             accion={<Boton icon="plus" onClick={() => ir('capturar')}>Capturar ahora</Boton>} />
         : <div className="space-y-3">
             <h3 className="eyebrow px-1 text-ink2">Evidencias capturadas</h3>
@@ -2152,6 +2171,7 @@ function Entregables({ mes, setMes }){
 function Ajustes(){
   const { st, setSt, toast, persistido } = useApp();
   const c = st.config;
+  const hayEjemplo = st.actividades.some(a => a.demo) || st.actas.some(a => a.demo);
   const up = (k,v) => setSt(p => ({ ...p, config:{ ...p.config, [k]:v } }));
 
   const campos = [
@@ -2239,13 +2259,22 @@ function Ajustes(){
             : 'No se pudo escribir en el almacenamiento del navegador: los datos viven solo mientras la pestaña esté abierta.'}</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Boton icon="eraser" variant="linea" onClick={() => {
-            setSt(p => ({ ...p,
-              actividades:p.actividades.filter(a => !a.demo),
-              evidencias:p.evidencias.filter(e => !e.demo),
-              actas:p.actas.filter(a => !a.demo) }));
-            toast('Datos de ejemplo eliminados.', 'verde');
-          }}>Quitar datos de ejemplo</Boton>
+          {hayEjemplo
+            ? <Boton icon="eraser" variant="linea" onClick={() => {
+                setSt(p => ({ ...p,
+                  actividades:p.actividades.filter(a => !a.demo),
+                  evidencias:p.evidencias.filter(e => !e.demo),
+                  actas:p.actas.filter(a => !a.demo) }));
+                toast('Datos de ejemplo eliminados.', 'verde');
+              }}>Quitar datos de ejemplo</Boton>
+            : <Boton icon="flask-conical" variant="linea" onClick={() => {
+                const d = datosDeEjemplo();
+                setSt(p => ({ ...p,
+                  actividades:[...d.actividades, ...p.actividades],
+                  evidencias:[...p.evidencias, ...d.evidencias],
+                  actas:[...d.actas, ...p.actas] }));
+                toast('Datos de ejemplo cargados. Quítalos cuando termines.', 'ambar');
+              }}>Cargar datos de ejemplo</Boton>}
           <Boton icon="trash-2" variant="linea" onClick={() => {
             if (!window.confirm('Se borran todas las actividades, evidencias y actas de este dispositivo. ¿Continuar?')) return;
             setSt(p => ({ ...p, actividades:[], evidencias:[], actas:[] }));
@@ -2254,7 +2283,9 @@ function Ajustes(){
         </div>
         <p className="text-[12px] leading-relaxed text-ink3">
           {st.actividades.length} actividades · {st.evidencias.length} evidencias · {st.actas.length} actas.
-          Los registros marcados como ejemplo están rotulados dentro de cada evidencia.
+          {hayEjemplo
+            ? ' Hay datos de muestra cargados: sus evidencias llevan impreso el rótulo «evidencia de ejemplo».'
+            : ' Todo lo registrado es gestión real; la muestra sirve para enseñar la app antes de borrarla.'}
         </p>
       </Card>
 
@@ -2290,6 +2321,141 @@ function Ajustes(){
         </ol>
       </Card>
     </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   11.b GUÍA — el manual, ordenado por lo que pasa en el día de
+        trabajo y no por los botones de la app.
+   ══════════════════════════════════════════════════════════════════ */
+const SITUACIONES = [
+  { icon:'users', titulo:'Salí de un comité, consejo o subcomité',
+    obligaciones:'O-01 · O-03 · O-05',
+    pasos:[
+      'Toca (+) y luego Tomar foto: la planilla de asistencia y una foto del espacio.',
+      'Mira la obligación que viene marcada y cámbiala si no corresponde.',
+      'Toca Guardar. La sesión ya quedó registrada y cuenta en el semáforo.'
+    ],
+    despues:'Cuando tengas tiempo, busca esa actividad en el feed de Inicio y toca Acta. Se abre con el orden del día ya armado: en cada punto escribes lo que pasó tal como lo dirías, y «Redactar institucional» lo convierte. Los compromisos se escriben en la tabla con su responsable y su fecha límite.' },
+
+  { icon:'globe', titulo:'Atendí a una persona o a una familia',
+    obligaciones:'O-07 · O-09',
+    pasos:[
+      'Toca (+) y luego Grabar nota.',
+      'Habla normal: «atendí seis familias venezolanas, las orienté por regularización y las remití a salud y al ICBF».',
+      'Al hacer una pausa el dictado se cierra solo y el texto institucional aparece redactado. Toca Guardar.'
+    ],
+    despues:'No escribas nombres ni cédulas de las personas atendidas. La app las reporta por su calidad — «seis núcleos familiares migrantes» —, que es como deben ir en un informe público.' },
+
+  { icon:'file-lock', titulo:'Tramité algo: UNP, PQRS o una alerta',
+    obligaciones:'O-04 · O-08 · O-10',
+    pasos:[
+      'Toca (+), graba la nota o toma foto del acuse de radicación.',
+      'Abre Más detalles y escribe el radicado en su casilla.',
+      'Toca Guardar.'
+    ],
+    despues:'El radicado queda pegado a la actividad y sale impreso en el informe mensual. Es lo que le permite al supervisor verificar el trámite sin tener que pedirte nada más.' },
+
+  { icon:'presentation', titulo:'Me toca exponer avances en el comité',
+    obligaciones:'Todas',
+    pasos:[
+      'Pestaña Entregables.',
+      'Toca Diapositivas ejecutivas.'
+    ],
+    despues:'Sale la presentación armada: portada con el escudo, cifras del mes, semáforo, una lámina por obligación con los logros y las fotos, los compromisos y los próximos pasos. Arriba tienes Imprimir / PDF para proyectarla, o Copiar a Word si quieres retocarla.' },
+
+  { icon:'file-text', titulo:'Llegó el corte de mes y la cuenta de cobro',
+    obligaciones:'Todas',
+    pasos:[
+      'Pestaña Entregables.',
+      'Toca Informe mensual de ejecución.'
+    ],
+    despues:'El informe clasifica solo todo lo que capturaste debajo de cada una de las 11 obligaciones, con la tabla de gestión, el anexo fotográfico y la certificación de cumplimiento. Toca Copiar a Word, pega con Ctrl+V — conserva tablas y fotos — y fírmalo.' },
+
+  { icon:'layout-dashboard', titulo:'Quiero saber si voy bien o voy mal',
+    obligaciones:'Todas',
+    pasos:[
+      'Abre la app. Ya está: arriba está la fila de once puntos.'
+    ],
+    despues:'Verde es meta cumplida, ámbar va en avance, rojo está en riesgo o sin un solo registro. Toca cualquiera para ver qué se hizo en esa obligación, o «Ver todo» para el cuadro completo. Si hay un compromiso vencido o una obligación abandonada, el aviso ámbar aparece antes del feed.' },
+
+  { icon:'wifi-off', titulo:'Estoy en vereda y no hay señal',
+    obligaciones:'Todas',
+    pasos:[
+      'Captura igual: foto, nota, guardar.'
+    ],
+    despues:'La app no necesita internet para funcionar. Todo queda en el teléfono y los documentos se generan sin conexión. La señal solo hace falta la primera vez que la instalas.' }
+];
+
+function Guia({ abierta, onCerrar }){
+  const { st } = useApp();
+  const faltaConfig = String(st.config.contratista || '').indexOf('«') === 0;
+  return (
+    <Hoja abierta={abierta} onCerrar={onCerrar} ancho="max-w-3xl"
+          titulo="Guía de uso" sub="Qué hacer en cada situación del día">
+      <div className="space-y-3">
+        {faltaConfig && (
+          <div className="rounded-xl border border-fucsia/30 bg-fucsiasoft p-3.5">
+            <p className="font-display text-[13.5px] font-bold text-fucsia">Antes de empezar</p>
+            <p className="mt-1 text-[13px] leading-relaxed text-ink2">
+              Entra a Ajustes y completa tu nombre, tu documento, el número del contrato y el nombre del
+              supervisor. Hasta que lo hagas, las actas y los informes salen con «Nombre del contratista»
+              en lugar del tuyo.
+            </p>
+          </div>
+        )}
+
+        <div className="rounded-xl border border-line bg-surface2 p-3.5">
+          <p className="font-display text-[13.5px] font-bold">La regla de la app</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-ink2">
+            Captura en el momento, redacta después, exporta al final del mes. Nunca escribes el mismo dato
+            dos veces: lo que registras en campo es exactamente lo que aparece luego en el acta, en las
+            diapositivas y en el informe de la cuenta de cobro.
+          </p>
+        </div>
+
+        {SITUACIONES.map((s, i) => (
+          <div key={i} className="rounded-xl border border-line bg-surface p-3.5">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-azuresoft text-azure">
+                <Icon n={s.icon} s={19} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="font-display text-[14.5px] font-bold leading-snug">{s.titulo}</p>
+                <p className="mt-0.5 font-mono text-[11px] text-ink3">{s.obligaciones}</p>
+              </div>
+            </div>
+            <ol className="mt-2.5 space-y-1.5">
+              {s.pasos.map((p, k) => (
+                <li key={k} className="flex gap-2.5 text-[13px] leading-relaxed">
+                  <span className="flex h-5 w-5 flex-none items-center justify-center rounded-full bg-azure font-mono text-[11px] font-medium text-paper">{k+1}</span>
+                  <span>{p}</span>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-2.5 border-t border-line pt-2.5 text-[12.5px] leading-relaxed text-ink2">{s.despues}</p>
+          </div>
+        ))}
+
+        <div className="rounded-xl border border-line bg-surface p-3.5">
+          <p className="font-display text-[14.5px] font-bold">Dónde cae cada cosa</p>
+          <p className="mt-0.5 text-[12.5px] text-ink3">Si dudas de qué obligación marcar, búscala aquí.</p>
+          <div className="mt-2.5 grid gap-1.5">
+            {OBLIGACIONES.map(o => (
+              <div key={o.id} className="flex items-start gap-2.5 border-b border-line pb-1.5 last:border-0">
+                <span className="font-mono text-[11px] text-ink3">{o.cod}</span>
+                <span className="min-w-0 flex-1 text-[12.5px] leading-snug">{o.corto}</span>
+                <span className="flex-none font-mono text-[11px] tnum text-ink3">{o.meta}/mes</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-2.5 text-[12px] leading-relaxed text-ink3">
+            El número de la derecha es la meta mensual con la que se calcula el semáforo. Si no corresponde
+            a tu contrato, se ajusta en el código: pídelo y se cambia.
+          </p>
+        </div>
+      </div>
+    </Hoja>
   );
 }
 
@@ -2388,6 +2554,7 @@ function App(){
   const [pedido, setPedido] = useState(null);
   const [doc, setDoc] = useState(null);
   const [aviso, setAviso] = useState(null);
+  const [guia, setGuia] = useState(false);
   const [persistido, setPersistido] = useState(true);
 
   useEffect(() => {
@@ -2433,6 +2600,10 @@ function App(){
               <h1 className="font-display text-[15.5px] font-bold leading-none">{tab === 'capturar' ? 'Captura rápida' : 'Bitácora Territorial'}</h1>
               <p className="mt-1 truncate text-[11.5px] text-ink3">{tab === 'capturar' ? 'Graba o fotografía; el resto ya viene puesto' : st.config.municipio + ' · ' + st.config.dependencia}</p>
             </div>
+            <button onClick={() => setGuia(true)} aria-label="Guía de uso"
+              className="flex h-9 w-9 flex-none items-center justify-center rounded-lg border border-line2 bg-surface text-ink2 hover:bg-surface2">
+              <Icon n="help-circle" s={18} />
+            </button>
             {(tab === 'inicio' || tab === 'entregables') && (
               <select value={mes} onChange={e => setMes(e.target.value)} aria-label="Período" id="hdr-mes"
                 className="rounded-lg border border-line2 bg-surface px-2.5 py-1.5 font-mono text-[12px] tnum">
@@ -2461,7 +2632,6 @@ function App(){
 
         <footer className="mt-8 border-t border-line pt-4 text-[11.5px] leading-relaxed text-ink3">
           {APP.nombre} {APP.version} · captura en campo, entregables con formato oficial.
-          Los registros rotulados como ejemplo son datos de demostración, no gestión real.
           <span className="mt-1 block">Editor: <strong className="text-ink2">{APP.editor}</strong> · para la Alcaldía Municipal de {st.config.municipio}, {st.config.departamento}.</span>
         </footer>
       </div>
@@ -2501,6 +2671,7 @@ function App(){
         </div>
       </nav>
 
+      <Guia abierta={guia} onCerrar={() => setGuia(false)} />
       <VisorDocumento doc={doc} onCerrar={() => setDoc(null)} />
     </Ctx.Provider>
   );

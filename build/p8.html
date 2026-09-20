@@ -178,6 +178,7 @@ function Entregables({ mes, setMes }){
 function Ajustes(){
   const { st, setSt, toast, persistido } = useApp();
   const c = st.config;
+  const hayEjemplo = st.actividades.some(a => a.demo) || st.actas.some(a => a.demo);
   const up = (k,v) => setSt(p => ({ ...p, config:{ ...p.config, [k]:v } }));
 
   const campos = [
@@ -265,13 +266,22 @@ function Ajustes(){
             : 'No se pudo escribir en el almacenamiento del navegador: los datos viven solo mientras la pestaña esté abierta.'}</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Boton icon="eraser" variant="linea" onClick={() => {
-            setSt(p => ({ ...p,
-              actividades:p.actividades.filter(a => !a.demo),
-              evidencias:p.evidencias.filter(e => !e.demo),
-              actas:p.actas.filter(a => !a.demo) }));
-            toast('Datos de ejemplo eliminados.', 'verde');
-          }}>Quitar datos de ejemplo</Boton>
+          {hayEjemplo
+            ? <Boton icon="eraser" variant="linea" onClick={() => {
+                setSt(p => ({ ...p,
+                  actividades:p.actividades.filter(a => !a.demo),
+                  evidencias:p.evidencias.filter(e => !e.demo),
+                  actas:p.actas.filter(a => !a.demo) }));
+                toast('Datos de ejemplo eliminados.', 'verde');
+              }}>Quitar datos de ejemplo</Boton>
+            : <Boton icon="flask-conical" variant="linea" onClick={() => {
+                const d = datosDeEjemplo();
+                setSt(p => ({ ...p,
+                  actividades:[...d.actividades, ...p.actividades],
+                  evidencias:[...p.evidencias, ...d.evidencias],
+                  actas:[...d.actas, ...p.actas] }));
+                toast('Datos de ejemplo cargados. Quítalos cuando termines.', 'ambar');
+              }}>Cargar datos de ejemplo</Boton>}
           <Boton icon="trash-2" variant="linea" onClick={() => {
             if (!window.confirm('Se borran todas las actividades, evidencias y actas de este dispositivo. ¿Continuar?')) return;
             setSt(p => ({ ...p, actividades:[], evidencias:[], actas:[] }));
@@ -280,7 +290,9 @@ function Ajustes(){
         </div>
         <p className="text-[12px] leading-relaxed text-ink3">
           {st.actividades.length} actividades · {st.evidencias.length} evidencias · {st.actas.length} actas.
-          Los registros marcados como ejemplo están rotulados dentro de cada evidencia.
+          {hayEjemplo
+            ? ' Hay datos de muestra cargados: sus evidencias llevan impreso el rótulo «evidencia de ejemplo».'
+            : ' Todo lo registrado es gestión real; la muestra sirve para enseñar la app antes de borrarla.'}
         </p>
       </Card>
 

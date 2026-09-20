@@ -26,7 +26,13 @@ const CONFIG_INICIAL = {
   codigoFormato:'FT-GD-02'
 };
 
-function seed(){
+/* Estado de una bitácora recién instalada: vacía. Las actividades de
+   muestra se cargan a mano desde Ajustes cuando hay que enseñar la app. */
+function estadoInicial(){
+  return { actividades:[], evidencias:[], actas:[], config:CONFIG_INICIAL, tema:'auto', limpiezaDemo:true };
+}
+
+function datosDeEjemplo(){
   const ev = [];
   const mkEv = (actividadId, titulo, sub, tipo, tono) => {
     const e = { id:uid('ev'), actividadId, nombre:titulo, descripcion:sub, tipo, dataUrl: tipo === 'foto' ? evidenciaDemo(titulo, sub, tono) : null, creadoEn:new Date().toISOString(), demo:true };
@@ -177,16 +183,25 @@ function seed(){
   const evsActa = A.filter(x => x.fecha === '2026-09-08').flatMap(x => x.evidencias);
   actas[0].evidencias = evsActa;
 
-  return { actividades:A, evidencias:ev, actas, config:CONFIG_INICIAL, tema:'auto' };
+  return { actividades:A, evidencias:ev, actas };
 }
 
 function cargarEstado(){
   try{
     const raw = localStorage.getItem(LS_KEY);
     if (raw){
-      const p = JSON.parse(raw);
+      let p = JSON.parse(raw);
       if (p && Array.isArray(p.actividades)){
         const config = { ...CONFIG_INICIAL, ...(p.config || {}) };
+        // Una sola vez: se retiran los datos de muestra que traían las versiones
+        // anteriores. Después, lo que se cargue desde Ajustes se respeta.
+        if (!p.limpiezaDemo){
+          p = { ...p,
+            actividades:p.actividades.filter(a => !a.demo),
+            evidencias:(p.evidencias || []).filter(e => !e.demo),
+            actas:(p.actas || []).filter(a => !a.demo),
+            limpiezaDemo:true };
+        }
         // Migración: las versiones previas guardaban el municipio como marcador.
         if (String(config.municipio || '').indexOf('«') === 0){
           config.municipio = CONFIG_INICIAL.municipio;
@@ -195,11 +210,11 @@ function cargarEstado(){
           if (config.secretaria === 'Secretaría de Gobierno y Convivencia Ciudadana')
             config.secretaria = CONFIG_INICIAL.secretaria;
         }
-        return { ...seed(), ...p, config };
+        return { ...estadoInicial(), ...p, config };
       }
     }
   }catch(e){ /* almacenamiento bloqueado: se trabaja en memoria */ }
-  return seed();
+  return estadoInicial();
 }
 function guardarEstado(st){
   try{ localStorage.setItem(LS_KEY, JSON.stringify(st)); return true; }

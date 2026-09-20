@@ -18,7 +18,8 @@ import re
 import sys
 
 RAIZ = os.path.dirname(os.path.abspath(__file__))
-CAPAS = ['p%d.html' % n for n in range(1, 10)]
+CAPAS = ['p1.html', 'p2.html', 'p3.html', 'p4.html', 'p5.html',
+         'p6.html', 'p7.html', 'p8.html', 'p8b.html', 'p9.html']
 ESCUDO = os.path.join(RAIZ, 'public', 'Escudo_del_municipio_de_simiti.png')
 ESCUDO_ANCHO = 320      # ~4x el tamaño impreso en el membrete
 ESCUDO_COLORES = 128

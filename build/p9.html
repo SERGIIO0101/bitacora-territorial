@@ -94,6 +94,7 @@ function App(){
   const [pedido, setPedido] = useState(null);
   const [doc, setDoc] = useState(null);
   const [aviso, setAviso] = useState(null);
+  const [guia, setGuia] = useState(false);
   const [persistido, setPersistido] = useState(true);
 
   useEffect(() => {
@@ -139,6 +140,10 @@ function App(){
               <h1 className="font-display text-[15.5px] font-bold leading-none">{tab === 'capturar' ? 'Captura rápida' : 'Bitácora Territorial'}</h1>
               <p className="mt-1 truncate text-[11.5px] text-ink3">{tab === 'capturar' ? 'Graba o fotografía; el resto ya viene puesto' : st.config.municipio + ' · ' + st.config.dependencia}</p>
             </div>
+            <button onClick={() => setGuia(true)} aria-label="Guía de uso"
+              className="flex h-9 w-9 flex-none items-center justify-center rounded-lg border border-line2 bg-surface text-ink2 hover:bg-surface2">
+              <Icon n="help-circle" s={18} />
+            </button>
             {(tab === 'inicio' || tab === 'entregables') && (
               <select value={mes} onChange={e => setMes(e.target.value)} aria-label="Período" id="hdr-mes"
                 className="rounded-lg border border-line2 bg-surface px-2.5 py-1.5 font-mono text-[12px] tnum">
@@ -167,7 +172,6 @@ function App(){
 
         <footer className="mt-8 border-t border-line pt-4 text-[11.5px] leading-relaxed text-ink3">
           {APP.nombre} {APP.version} · captura en campo, entregables con formato oficial.
-          Los registros rotulados como ejemplo son datos de demostración, no gestión real.
           <span className="mt-1 block">Editor: <strong className="text-ink2">{APP.editor}</strong> · para la Alcaldía Municipal de {st.config.municipio}, {st.config.departamento}.</span>
         </footer>
       </div>
@@ -207,6 +211,7 @@ function App(){
         </div>
       </nav>
 
+      <Guia abierta={guia} onCerrar={() => setGuia(false)} />
       <VisorDocumento doc={doc} onCerrar={() => setDoc(null)} />
     </Ctx.Provider>
   );

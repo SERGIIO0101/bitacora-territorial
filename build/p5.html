@@ -241,7 +241,11 @@ function Inicio({ mes, setMes }){
       )}
 
       {feed.length === 0
-        ? <Vacio icon="camera" titulo="Sin registros este mes" texto="Toca el botón + y captura la primera evidencia: una foto o una nota dictada bastan."
+        ? <Vacio icon="camera"
+            titulo={st.actividades.length ? 'Sin registros este mes' : 'Tu bitácora está lista'}
+            texto={st.actividades.length
+              ? 'En este período no hay actividades capturadas. Cambia de mes arriba o registra una nueva.'
+              : 'Toca el botón + y captura la primera evidencia: una foto o una nota dictada bastan. La fecha, la hora y la obligación vienen puestas.'}
             accion={<Boton icon="plus" onClick={() => ir('capturar')}>Capturar ahora</Boton>} />
         : <div className="space-y-3">
             <h3 className="eyebrow px-1 text-ink2">Evidencias capturadas</h3>
