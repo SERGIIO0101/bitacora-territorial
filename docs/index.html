@@ -244,7 +244,7 @@ const ACCESOS = [
    al pie, a Ajustes y a las etiquetas <meta> que genera build.py. */
 const APP = {
   nombre:'Bitácora Territorial',
-  version:'1.1.1',
+  version:'1.2.0',
   editor:'Lab-S',
   anio:'2026'
 };
@@ -1404,6 +1404,7 @@ function Capturar({ prefill, limpiarPrefill }){
   const [cargando, setCargando] = useState(false);
   const [detalles, setDetalles] = useState(false);
   const [lugarLibre, setLugarLibre] = useState(false);
+  const [destino, setDestino] = useState(false);
 
   const recRef = useRef(null);
   const baseRef = useRef('');
@@ -1514,7 +1515,7 @@ function Capturar({ prefill, limpiarPrefill }){
     setSt(p => ({ ...p,
       actividades:[act, ...p.actividades],
       evidencias:[...p.evidencias, ...evs.map(e => ({ ...e, actividadId:act.id }))] }));
-    setF(nuevoForm()); setEvs([]); setDetalles(false); setLugarLibre(false);
+    setF(nuevoForm()); setEvs([]); setDetalles(false); setLugarLibre(false); setDestino(false);
     toast(`Registrado en ${obl(act.obligacionId).cod}. Ya cuenta en el semáforo.`, 'verde');
     ir('inicio');
   }
@@ -1523,13 +1524,25 @@ function Capturar({ prefill, limpiarPrefill }){
 
   return (
     <div className="space-y-4">
-      {/* Fecha y hora puestas por la app */}
-      <div className="flex items-center gap-2 rounded-xl border border-line bg-surface2 px-3.5 py-2.5">
-        <Icon n="clock" s={16} className="flex-none text-ink3" />
-        <p className="flex-1 text-[12.5px] leading-snug text-ink2">
-          <strong className="text-ink">{fechaRelativa(f.fecha)}</strong>, {fechaLarga(f.fecha)} · {f.hora}
-        </p>
-        <button onClick={() => setDetalles(true)} className="flex-none font-display text-[12px] font-semibold text-azure">Cambiar</button>
+      {/* Todo lo que la app ya decidió por ti, en una sola línea */}
+      <div className="flex items-center gap-3 rounded-xl border border-line bg-surface2 px-3.5 py-3">
+        <span className="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-surface text-azure">
+          <Icon n={o.icon} s={19} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-display text-[13.5px] font-semibold">
+            <span className="font-mono text-[11.5px] text-ink3">{o.cod}</span> {o.corto}
+          </p>
+          <p className="mt-0.5 truncate text-[11.5px] text-ink3">
+            {fechaRelativa(f.fecha)}, {f.hora}
+            {f.lugar ? ' · ' + f.lugar : ''}
+            {Number(f.participantes) > 0 ? ' · ' + f.participantes + ' personas' : ''}
+          </p>
+        </div>
+        <button onClick={() => setDestino(v => !v)}
+          className="flex-none rounded-lg border border-line2 bg-surface px-2.5 py-1.5 font-display text-[12px] font-semibold text-azure">
+          {destino ? 'Listo' : 'Cambiar'}
+        </button>
       </div>
 
       {/* Los dos botones que importan */}
@@ -1587,7 +1600,9 @@ function Capturar({ prefill, limpiarPrefill }){
         </div>
       )}
 
-      {/* Obligación: tarjetas, no un desplegable */}
+      {/* Se despliega solo si hay que corregir lo que la app supuso */}
+      {destino && (
+      <div className="space-y-4 anim-in">
       <div>
         <div className="mb-2 px-1">
           <h3 className="eyebrow text-ink2">¿A qué obligación cuenta?</h3>
@@ -1685,6 +1700,9 @@ function Capturar({ prefill, limpiarPrefill }){
           </div>
         </div>
       </div>
+
+      </div>
+      )}
 
       <button onClick={() => setDetalles(v => !v)}
         className="flex w-full items-center justify-between rounded-xl border border-line bg-surface px-3.5 py-3 text-left">
