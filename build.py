@@ -30,7 +30,7 @@ ENVOLTURA = u'''<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="description" content="Captura de evidencias en campo y generacion de actas, diapositivas e informes de ejecucion contractual.">
 <meta name="theme-color" content="#0E5A78">
 <meta name="author" content="Lab-S">

@@ -1,6 +1,6 @@
-/* Bitácora Territorial 1.2.0 — service worker · Editor: Lab-S
+/* Bitácora Territorial 1.3.0 — service worker · Editor: Lab-S
    La referente trabaja en territorio, muchas veces sin señal: la app debe abrir igual. */
-const CACHE = 'bitacora-1.2.0';
+const CACHE = 'bitacora-1.3.0';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

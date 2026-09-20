@@ -32,9 +32,10 @@ function actaNueva(st, base){
   };
 }
 
-function EditorActa({ acta, onGuardar, onCerrar }){
+function EditorActa({ acta, onChange }){
   const { st } = useApp();
-  const [a, setA] = useState(acta);
+  const a = acta;
+  const setA = arg => onChange(typeof arg === 'function' ? arg(acta) : arg);
   const up = (k,v) => setA(p => ({ ...p, [k]:v }));
 
   const evsDisponibles = useMemo(() => {
@@ -202,10 +203,6 @@ function EditorActa({ acta, onGuardar, onCerrar }){
         <textarea rows={2} className="fld resize-y" id="ac-concl" value={a.conclusiones} onChange={e => up('conclusiones', e.target.value)} />
       </Campo>
 
-      <div className="sticky bottom-0 -mx-4 flex gap-2 border-t border-line bg-paper px-4 py-3 sm:-mx-5 sm:px-5">
-        <Boton icon="check" onClick={() => onGuardar(a)} className="flex-1">Guardar acta</Boton>
-        <Boton variant="fantasma" onClick={onCerrar}>Cancelar</Boton>
-      </div>
     </div>
   );
 }
@@ -261,7 +258,7 @@ function Actas({ pedido, limpiarPedido }){
                       <p className="mt-0.5 text-[12px] text-ink3">{fechaLarga(a.fecha)} · {a.lugar || 'sin lugar'} · {(a.evidencias||[]).length} anexos</p>
                     </div>
                     <div className="flex flex-none items-center gap-1">
-                      <button onClick={() => abrirDoc(construirActa(a, st))} className="rounded-lg border border-line2 bg-surface px-2.5 py-2 text-ink2 hover:bg-surface2" title="Ver y exportar"><Icon n="eye" s={16} /></button>
+                      <button onClick={() => abrirDoc(() => construirActa(a, st))} className="rounded-lg border border-line2 bg-surface px-2.5 py-2 text-ink2 hover:bg-surface2" title="Ver y exportar"><Icon n="eye" s={16} /></button>
                       <button onClick={() => setEdit(a)} className="rounded-lg border border-line2 bg-surface px-2.5 py-2 text-ink2 hover:bg-surface2" title="Editar"><Icon n="pencil" s={16} /></button>
                       <button onClick={() => eliminar(a.id)} className="rounded-lg border border-line2 bg-surface px-2.5 py-2 text-ink3 hover:bg-rojosoft hover:text-rojo" title="Eliminar"><Icon n="trash-2" s={16} /></button>
                     </div>
@@ -272,8 +269,14 @@ function Actas({ pedido, limpiarPedido }){
           </div>}
 
       <Hoja abierta={!!edit} onCerrar={() => setEdit(null)} ancho="max-w-3xl"
-            titulo={edit ? `Acta N.º ${edit.consecutivo}` : ''} sub="Se numera automáticamente por año">
-        {edit && <EditorActa acta={edit} onGuardar={guardar} onCerrar={() => setEdit(null)} />}
+            titulo={edit ? `Acta N.º ${edit.consecutivo}` : ''} sub="Se numera automáticamente por año"
+            pie={edit && (
+              <div className="flex gap-2">
+                <Boton icon="check" onClick={() => guardar(edit)} className="flex-1">Guardar acta</Boton>
+                <Boton variant="fantasma" onClick={() => setEdit(null)}>Cancelar</Boton>
+              </div>
+            )}>
+        {edit && <EditorActa acta={edit} onChange={setEdit} />}
       </Hoja>
     </div>
   );

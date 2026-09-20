@@ -56,7 +56,7 @@ function Boton({ children, icon, variant = 'primario', className = '', ...p }){
   );
 }
 
-function Hoja({ abierta, onCerrar, titulo, sub, children, ancho = 'max-w-2xl' }){
+function Hoja({ abierta, onCerrar, titulo, sub, children, pie, ancho = 'max-w-2xl' }){
   useEffect(() => {
     if (!abierta) return;
     const h = e => { if (e.key === 'Escape') onCerrar(); };
@@ -66,8 +66,8 @@ function Hoja({ abierta, onCerrar, titulo, sub, children, ancho = 'max-w-2xl' })
   if (!abierta) return null;
   return (
     <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center" role="dialog" aria-modal="true" aria-label={titulo}>
-      <div className="absolute inset-0 bg-ink/40 backdrop-blur-[2px]" onClick={onCerrar} />
-      <div className={cx('relative w-full anim-in bg-paper shadow-pop rounded-t-3xl sm:rounded-2xl border border-line flex flex-col', ancho)}
+      <div className="anim-fade absolute inset-0 bg-ink/40 backdrop-blur-[2px]" onClick={onCerrar} />
+      <div className={cx('relative w-full anim-sube bg-paper shadow-pop rounded-t-3xl sm:rounded-2xl border border-line flex flex-col overflow-hidden', ancho)}
            style={{ maxHeight:'min(90vh, 900px)' }}>
         <div className="flex items-start gap-3 border-b border-line px-4 py-3.5 sm:px-5">
           <div className="min-w-0 flex-1">
@@ -76,7 +76,13 @@ function Hoja({ abierta, onCerrar, titulo, sub, children, ancho = 'max-w-2xl' })
           </div>
           <button onClick={onCerrar} aria-label="Cerrar" className="rounded-lg p-1.5 text-ink2 hover:bg-surface2"><Icon n="x" s={20} /></button>
         </div>
-        <div className="overflow-y-auto px-4 py-4 sm:px-5">{children}</div>
+        <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-5">{children}</div>
+        {pie && (
+          <div className="border-t border-line bg-paper px-4 py-3 sm:px-5"
+               style={{ paddingBottom:'calc(12px + env(safe-area-inset-bottom, 0px))' }}>
+            {pie}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -111,7 +117,7 @@ function TarjetaActividad({ a, estado, fotos, extras, onAbrir, onActa }){
     <Card className="overflow-hidden rail" style={{ '--rail':SEM[estado.k].rail }}>
       <button onClick={onAbrir} className="block w-full text-left">
         <div className="flex items-center gap-2.5 py-3 pl-4 pr-3.5">
-          <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-surface2 text-ink2"><Icon n={o.icon} s={18} /></span>
+          <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-azuresoft text-azure"><Icon n={o.icon} s={18} /></span>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
               <span className="font-mono text-[11px] text-ink3">{o.cod}</span>
@@ -158,7 +164,7 @@ function TarjetaActividad({ a, estado, fotos, extras, onAbrir, onActa }){
 }
 
 function Inicio({ mes, setMes }){
-  const { st, ir } = useApp();
+  const { st, setSt, ir, toast } = useApp();
   const [detalle, setDetalle] = useState(null);
   const [actividad, setActividad] = useState(null);
   const [verTodo, setVerTodo] = useState(false);
@@ -184,6 +190,36 @@ function Inicio({ mes, setMes }){
     .filter(c => c.estado !== 'Cumplido' && c.fecha && c.fecha < hoyISO()), [st.actas]);
   const enRojo = filas.filter(f => f.e.k === 'rojo');
   const abrirActa = a => ir('actas', { desdeActividad:a.id });
+
+  /* Borrar no es definitivo de inmediato: queda unos segundos para deshacer,
+     que es lo que salva la foto eliminada por error. */
+  function borrarEvidencia(ev, actividadId){
+    setSt(p => ({ ...p,
+      evidencias:p.evidencias.filter(e => e.id !== ev.id),
+      actividades:p.actividades.map(a => a.id === actividadId
+        ? { ...a, evidencias:(a.evidencias || []).filter(id => id !== ev.id) } : a) }));
+    setActividad(a => a && a.id === actividadId
+      ? { ...a, evidencias:(a.evidencias || []).filter(id => id !== ev.id) } : a);
+    toast('Evidencia eliminada.', 'ambar', { etiqueta:'Deshacer', hacer(){
+      setSt(p => ({ ...p,
+        evidencias:[...p.evidencias, ev],
+        actividades:p.actividades.map(a => a.id === actividadId
+          ? { ...a, evidencias:[...(a.evidencias || []), ev.id] } : a) }));
+      setActividad(a => a && a.id === actividadId
+        ? { ...a, evidencias:[...(a.evidencias || []), ev.id] } : a);
+    } });
+  }
+
+  function borrarActividad(a){
+    const evs = st.evidencias.filter(e => (a.evidencias || []).includes(e.id));
+    setSt(p => ({ ...p,
+      actividades:p.actividades.filter(x => x.id !== a.id),
+      evidencias:p.evidencias.filter(e => !(a.evidencias || []).includes(e.id)) }));
+    setActividad(null);
+    toast('Actividad eliminada.', 'ambar', { etiqueta:'Deshacer', hacer(){
+      setSt(p => ({ ...p, actividades:[a, ...p.actividades], evidencias:[...p.evidencias, ...evs] }));
+    } });
+  }
 
   return (
     <div className="space-y-4">
@@ -273,7 +309,7 @@ function Inicio({ mes, setMes }){
               className="rail w-full rounded-xl border border-line bg-surface p-3 pl-4 text-left transition hover:bg-surface2"
               style={{ '--rail':SEM[e.k].rail }}>
               <div className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-surface2 text-ink2"><Icon n={o.icon} s={17} /></span>
+                <span className="mt-0.5 flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-azuresoft text-azure"><Icon n={o.icon} s={17} /></span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-[11px] text-ink3">{o.cod}</span>
@@ -336,8 +372,12 @@ function Inicio({ mes, setMes }){
               {fotos.length > 0 && (
                 <div className="grid grid-cols-2 gap-2">
                   {fotos.map(e => (
-                    <figure key={e.id} className="overflow-hidden rounded-xl border border-line">
+                    <figure key={e.id} className="relative overflow-hidden rounded-xl border border-line">
                       <img src={e.dataUrl} alt={e.nombre} className="h-32 w-full object-cover" />
+                      <button onClick={() => borrarEvidencia(e, actividad.id)} aria-label={'Eliminar ' + e.nombre}
+                        className="absolute right-1.5 top-1.5 rounded-full bg-ink/70 p-1.5 text-paper">
+                        <Icon n="trash-2" s={13} />
+                      </button>
                       <figcaption className="px-2 py-1.5 text-[11px] text-ink3">{e.nombre}</figcaption>
                     </figure>
                   ))}
@@ -353,7 +393,11 @@ function Inicio({ mes, setMes }){
                   <p className="rounded-xl border border-dashed border-line2 p-3 text-[13px] italic leading-relaxed text-ink3">«{actividad.notaCruda}»</p>
                 </div>
               )}
-              <Boton icon="file-plus" className="w-full" onClick={() => { const a = actividad; setActividad(null); abrirActa(a); }}>Crear acta de esta actividad</Boton>
+              <div className="flex gap-2 border-t border-line pt-3">
+                <Boton icon="file-plus" className="flex-1" onClick={() => { const a = actividad; setActividad(null); abrirActa(a); }}>Crear acta</Boton>
+                <Boton icon="trash-2" variant="linea" onClick={() => borrarActividad(actividad)}>Eliminar</Boton>
+              </div>
+              <p className="text-center text-[11.5px] text-ink3">Al eliminar queda unos segundos el botón «Deshacer».</p>
             </div>
           );
         })()}

@@ -75,13 +75,13 @@ function Entregables({ mes, setMes }){
   const TIPOS_SESION = ['Comité de política pública','Consejo Territorial de Paz','Subcomité de Prevención','Mesa técnica'];
 
   function actaDeUnClic(){
-    if (actasMes.length){ abrirDoc(construirActa(actasMes[0], st)); return; }
+    if (actasMes.length){ abrirDoc(() => construirActa(actasMes[0], st)); return; }
     const delMes = st.actividades.filter(a => mesDe(a.fecha) === mes).sort((a,b) => b.fecha.localeCompare(a.fecha));
     const base = delMes.find(a => TIPOS_SESION.includes(a.tipo)) || delMes[0];
     if (!base){ toast('Aún no hay actividades del período para levantar el acta.', 'ambar'); return; }
     const nueva = actaNueva(st, base);
     setSt(p => ({ ...p, actas:[nueva, ...p.actas] }));
-    abrirDoc(construirActa(nueva, st));
+    abrirDoc(() => construirActa(nueva, st));
     toast('Acta borrador armada con la última sesión. Ajústala en Actas.', 'verde');
   }
 
@@ -111,13 +111,13 @@ function Entregables({ mes, setMes }){
         <BotonExportar icon="file-text" titulo="Informe mensual de ejecución" tono="azure"
           sub="Las 11 obligaciones con sus actividades, anexo fotográfico y certificación para la cuenta de cobro."
           nota={`${acts.length} actividades · ${totalEv} evidencias`}
-          onClick={() => abrirDoc(construirInforme(mes, st))} />
+          onClick={() => abrirDoc(() => construirInforme(mes, st))} />
 
         <BotonExportar icon="presentation" titulo="Diapositivas ejecutivas" tono="fucsia"
           sub="Portada, cifras, semáforo, una lámina por obligación con logros y fotos, compromisos y próximos pasos."
           nota={`${slides.length} diapositivas`}
-          onClick={() => abrirDoc({ titulo:'Presentación ejecutiva — ' + mesLargo(mes), archivo:'Diapositivas_' + mes + '.doc',
-            html:diapositivasHTML(slides, st), esDiapositivas:true })} />
+          onClick={() => abrirDoc(() => ({ titulo:'Presentación ejecutiva — ' + mesLargo(mes), archivo:'Diapositivas_' + mes + '.doc',
+            html:diapositivasHTML(slides, st), esDiapositivas:true }))} />
 
         <BotonExportar icon="file-signature" titulo="Acta de comité" tono="verde"
           sub={actasMes.length

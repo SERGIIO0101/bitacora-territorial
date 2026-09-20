@@ -39,11 +39,14 @@
     --shadow:0 0 0;
   }
 
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   html,body{height:100%}
+  *{-webkit-tap-highlight-color:transparent}
   body{
     margin:0; background:rgb(var(--paper)); color:rgb(var(--ink));
     font-family:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;
     -webkit-font-smoothing:antialiased; overflow-x:hidden;
+    overscroll-behavior-y:contain; touch-action:manipulation;
   }
   *{box-sizing:border-box}
   .font-display{font-family:'Archivo','Segoe UI',system-ui,sans-serif}
@@ -66,6 +69,14 @@
 
   @keyframes bt-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   .anim-in{animation:bt-in .22s ease-out both}
+  @keyframes bt-fade{from{opacity:0}to{opacity:1}}
+  .anim-fade{animation:bt-fade .18s ease-out both}
+  @keyframes bt-sube{from{opacity:0;transform:translateY(22px) scale(.99)}to{opacity:1;transform:none}}
+  .anim-sube{animation:bt-sube .26s cubic-bezier(.22,1,.36,1) both}
+  @keyframes bt-giro{to{transform:rotate(360deg)}}
+  .giro{animation:bt-giro .8s linear infinite}
+  @keyframes bt-barra{0%{transform:translateX(-100%)}100%{transform:translateX(320%)}}
+  .barra-carga{animation:bt-barra 1.15s cubic-bezier(.65,0,.35,1) infinite}
   @keyframes pulse-rec{0%,100%{opacity:1}50%{opacity:.35}}
   .rec{animation:pulse-rec 1.1s ease-in-out infinite}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -96,6 +107,13 @@
   .doc .anexo-grid figcaption{font-family:'IBM Plex Sans',sans-serif;font-size:10.5px;color:#4a5a60;padding-top:5px;line-height:1.35}
   .doc .nota{background:#F3F7F8;border-left:3px solid #0E5A78;padding:9px 12px;font-size:12.5px;font-family:'IBM Plex Sans',sans-serif;margin:10px 0}
   .doc .sello{border:2px solid #B32074;color:#B32074;border-radius:6px;padding:8px 12px;font-family:'Archivo',sans-serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase;display:inline-block;transform:rotate(-2deg)}
+
+  .bt-splash{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:rgb(var(--paper));z-index:60}
+  .bt-splash-marca{width:62px;height:62px;border-radius:16px;background:rgb(var(--azure));color:rgb(var(--paper));display:flex;align-items:center;justify-content:center;font-family:'Archivo',sans-serif;font-weight:700;font-size:21px;letter-spacing:.04em;margin-bottom:10px}
+  .bt-splash-nombre{margin:0;font-family:'Archivo',sans-serif;font-weight:700;font-size:16px;color:rgb(var(--ink))}
+  .bt-splash-sub{margin:0;font-size:12.5px;color:rgb(var(--ink-3))}
+  .bt-splash-pista{margin-top:16px;width:132px;height:3px;border-radius:99px;background:rgb(var(--surface-3));overflow:hidden}
+  .bt-splash-pista span{display:block;width:30%;height:100%;border-radius:99px;background:rgb(var(--azure))}
 
   @media print{
     body.doc-open .app-shell{display:none!important}
@@ -144,4 +162,11 @@
 <script src="https://cdn.jsdelivr.net/npm/lucide@0.294.0/dist/umd/lucide.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.4/babel.min.js"></script>
 
-<div id="root"></div>
+<div id="root">
+  <div class="bt-splash">
+    <div class="bt-splash-marca">BT</div>
+    <p class="bt-splash-nombre">Bitácora Territorial</p>
+    <p class="bt-splash-sub">Alcaldía Municipal de Simití</p>
+    <div class="bt-splash-pista"><span class="barra-carga"></span></div>
+  </div>
+</div>

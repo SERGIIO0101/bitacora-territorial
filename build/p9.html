@@ -80,7 +80,7 @@ function VisorDocumento({ doc, onCerrar }){
    ══════════════════════════════════════════════════════════════════ */
 /* Cuatro destinos y, en el centro, el (+) que abre la captura. */
 const NAV = [
-  ['inicio','Inicio','layout-dashboard'],
+  ['inicio','Inicio','home'],
   ['actas','Actas','file-text'],
   ['entregables','Entregables','presentation'],
   ['ajustes','Ajustes','settings']
@@ -95,6 +95,7 @@ function App(){
   const [doc, setDoc] = useState(null);
   const [aviso, setAviso] = useState(null);
   const [guia, setGuia] = useState(false);
+  const [generando, setGenerando] = useState(false);
   const [persistido, setPersistido] = useState(true);
 
   useEffect(() => {
@@ -108,9 +109,21 @@ function App(){
     else r.setAttribute('data-theme', st.tema);
   }, [st.tema]);
 
-  const toast = useCallback((texto, tono = 'verde') => {
-    setAviso({ texto, tono, id:Date.now() });
-    setTimeout(() => setAviso(a => (a && a.texto === texto) ? null : a), 4200);
+  const toast = useCallback((texto, tono = 'verde', accion = null) => {
+    const id = Date.now();
+    setAviso({ texto, tono, accion, id });
+    setTimeout(() => setAviso(a => (a && a.id === id) ? null : a), accion ? 9000 : 4200);
+  }, []);
+
+  /* Un informe con muchas fotos tarda un momento en armarse: se pinta primero
+     el aviso de carga y se construye en el siguiente cuadro. */
+  const abrirDoc = useCallback(entrada => {
+    if (typeof entrada !== 'function'){ setDoc(entrada); return; }
+    setGenerando(true);
+    setTimeout(() => {
+      try { setDoc(entrada()); }
+      finally { setGenerando(false); }
+    }, 40);
   }, []);
 
   const ir = useCallback((destino, carga) => {
@@ -120,7 +133,7 @@ function App(){
     window.scrollTo({ top:0, behavior:'smooth' });
   }, []);
 
-  const ctx = useMemo(() => ({ st, setSt, toast, ir, abrirDoc:setDoc, persistido }), [st, toast, ir, persistido]);
+  const ctx = useMemo(() => ({ st, setSt, toast, ir, abrirDoc, persistido }), [st, toast, ir, abrirDoc, persistido]);
   const sinDatos = st.config.contratista.startsWith('«');
   const meses = mesesDisponibles(st.actividades);
 
@@ -182,7 +195,13 @@ function App(){
             aviso.tono === 'verde' ? 'border-verde/30 bg-verdesoft text-verde' :
             aviso.tono === 'rojo' ? 'border-rojo/30 bg-rojosoft text-rojo' : 'border-ambar/30 bg-ambarsoft text-ambar')}>
             <Icon n={aviso.tono === 'verde' ? 'check-circle' : 'alert-circle'} s={16} className="mt-0.5 flex-none" />
-            <span className="text-[13px] font-medium leading-snug">{aviso.texto}</span>
+            <span className="flex-1 text-[13px] font-medium leading-snug">{aviso.texto}</span>
+            {aviso.accion && (
+              <button onClick={() => { aviso.accion.hacer(); setAviso(null); }}
+                className="flex-none rounded-lg border border-current px-2 py-1 font-display text-[12px] font-bold">
+                {aviso.accion.etiqueta}
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -196,7 +215,7 @@ function App(){
               <button onClick={() => ir(k)} aria-current={tab === k ? 'page' : undefined}
                 className={cx('flex flex-1 flex-col items-center gap-1 py-2.5 transition', tab === k ? 'text-azure' : 'text-ink3 hover:text-ink2')}>
                 <span className={cx('flex h-7 w-12 items-center justify-center rounded-full transition', tab === k ? 'bg-azuresoft' : '')}>
-                  <Icon n={ic} s={19} />
+                  <Icon n={ic} s={19} stroke={tab === k ? 2.25 : 1.6} />
                 </span>
                 <span className="font-display text-[10.5px] font-semibold">{l}</span>
               </button>
@@ -210,6 +229,14 @@ function App(){
           </button>
         </div>
       </nav>
+
+      {generando && (
+        <div className="anim-fade fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-paper/85 backdrop-blur-sm">
+          <Icon n="loader-2" s={30} className="giro text-azure" />
+          <p className="font-display text-[14px] font-semibold">Armando el documento…</p>
+          <p className="text-[12.5px] text-ink3">Compilando actividades y anexo fotográfico</p>
+        </div>
+      )}
 
       <Guia abierta={guia} onCerrar={() => setGuia(false)} />
       <VisorDocumento doc={doc} onCerrar={() => setDoc(null)} />

@@ -5,15 +5,15 @@ const { useState, useEffect, useMemo, useRef, useCallback } = React;
    1. MATRIZ CONTRACTUAL — las 11 obligaciones
    ══════════════════════════════════════════════════════════════════ */
 const OBLIGACIONES = [
-  { id:1,  cod:'O-01', eje:'Políticas públicas', meta:2, icon:'users',
+  { id:1,  cod:'O-01', eje:'Políticas públicas', meta:2, icon:'users-round',
     corto:'Comités de política pública',
     titulo:'Preparar los espacios y realizar seguimiento a los comités de las políticas públicas LGBTI, Discapacidad y Afrodescendientes.',
     politicas:['LGBTI','Discapacidad','Afrodescendientes'], entregable:'acta' },
-  { id:2,  cod:'O-02', eje:'Políticas públicas', meta:1, icon:'target',
+  { id:2,  cod:'O-02', eje:'Políticas públicas', meta:1, icon:'goal',
     corto:'Metas Juventud · Adulto Mayor · Mujer · MIAFF',
     titulo:'Apoyar el cumplimiento de las metas establecidas en las políticas públicas de Juventud, Adulto Mayor, Mujer y MIAFF.',
     politicas:['Juventud','Adulto Mayor','Mujer','MIAFF'], entregable:'informe' },
-  { id:3,  cod:'O-03', eje:'Paz y reconciliación', meta:1, icon:'bird',
+  { id:3,  cod:'O-03', eje:'Paz y reconciliación', meta:1, icon:'heart-handshake',
     corto:'Consejo Territorial de Paz',
     titulo:'Coordinar el Consejo Territorial de Paz, Reconciliación y Convivencia, elaborar las actas y realizar seguimiento a los planes de acción.',
     politicas:['Paz'], entregable:'acta' },
@@ -25,7 +25,7 @@ const OBLIGACIONES = [
     corto:'Subcomité de Prevención y Protección',
     titulo:'Coordinar el Subcomité de Prevención, Protección y Garantías de No Repetición, levantar las actas y hacer seguimiento a los compromisos.',
     politicas:['DDHH'], entregable:'acta' },
-  { id:6,  cod:'O-06', eje:'Paz y reconciliación', meta:1, icon:'map',
+  { id:6,  cod:'O-06', eje:'Paz y reconciliación', meta:1, icon:'sprout',
     corto:'PDET · Pilar 8',
     titulo:'Coordinar, hacer seguimiento y evaluar la iniciativa PDET Pilar 8 — Reconciliación, Convivencia y Construcción de Paz.',
     politicas:['Paz','PDET'], entregable:'informe' },
@@ -37,11 +37,11 @@ const OBLIGACIONES = [
     corto:'Trámites UNP',
     titulo:'Tramitar ante la Unidad Nacional de Protección las medidas de protección para líderes sociales, defensores de derechos humanos y personas en proceso de reincorporación.',
     politicas:['Protección'], entregable:'informe' },
-  { id:9,  cod:'O-09', eje:'Protección', meta:1, icon:'route',
+  { id:9,  cod:'O-09', eje:'Protección', meta:1, icon:'life-buoy',
     corto:'Rutas de protección',
     titulo:'Activar las rutas de protección ante situaciones de riesgo extraordinario o extremo reportadas en el territorio.',
     politicas:['Protección'], entregable:'informe' },
-  { id:10, cod:'O-10', eje:'Atención a la ciudadanía', meta:4, icon:'mail',
+  { id:10, cod:'O-10', eje:'Atención a la ciudadanía', meta:4, icon:'inbox',
     corto:'PQRS',
     titulo:'Proyectar y dar respuesta a las peticiones, quejas, reclamos y sugerencias asignadas a la Secretaría dentro de los términos de ley.',
     politicas:['PQRS'], entregable:'informe' },
@@ -58,20 +58,20 @@ const ACCESOS = [
   { label:'Comité LGBTI',      ob:1,  tipo:'Comité de política pública', icon:'users',       instancia:'Comité Municipal de Política Pública LGBTI' },
   { label:'Comité Discapacidad',ob:1, tipo:'Comité de política pública', icon:'accessibility',instancia:'Comité Municipal de Discapacidad' },
   { label:'Comité Afro',       ob:1,  tipo:'Comité de política pública', icon:'users-round', instancia:'Comité de Comunidades Negras, Afrocolombianas, Raizales y Palenqueras' },
-  { label:'Consejo de Paz',    ob:3,  tipo:'Consejo Territorial de Paz', icon:'bird',        instancia:'Consejo Territorial de Paz, Reconciliación y Convivencia' },
+  { label:'Consejo de Paz',    ob:3,  tipo:'Consejo Territorial de Paz', icon:'heart-handshake',        instancia:'Consejo Territorial de Paz, Reconciliación y Convivencia' },
   { label:'Subcomité P.P.GNR', ob:5,  tipo:'Subcomité de Prevención',    icon:'shield-check',instancia:'Subcomité de Prevención, Protección y Garantías de No Repetición' },
   { label:'Alerta SAT',        ob:4,  tipo:'Seguimiento a compromisos',  icon:'siren',       instancia:'' },
   { label:'Atención migrante', ob:7,  tipo:'Atención a la ciudadanía',   icon:'globe',       instancia:'' },
   { label:'Trámite UNP',       ob:8,  tipo:'Trámite institucional',      icon:'file-lock',   instancia:'' },
-  { label:'Ruta de protección',ob:9,  tipo:'Trámite institucional',      icon:'route',       instancia:'' },
-  { label:'PQRS',              ob:10, tipo:'Respuesta a PQRS',           icon:'mail',        instancia:'' }
+  { label:'Ruta de protección',ob:9,  tipo:'Trámite institucional',      icon:'life-buoy',       instancia:'' },
+  { label:'PQRS',              ob:10, tipo:'Respuesta a PQRS',           icon:'inbox',        instancia:'' }
 ];
 
 /* Ficha de la aplicación. El nombre del editor sale de aquí a la cabecera,
    al pie, a Ajustes y a las etiquetas <meta> que genera build.py. */
 const APP = {
   nombre:'Bitácora Territorial',
-  version:'1.2.0',
+  version:'1.3.0',
   editor:'Lab-S',
   anio:'2026'
 };
