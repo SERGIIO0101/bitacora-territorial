@@ -1,0 +1,143 @@
+<script type="text/babel" data-presets="react">
+/* ══════════════════════════════════════════════════════════════════
+   8.b EDITOR DE ACTIVIDAD — corregir lo ya guardado.
+       Marcar mal la obligación o equivocarse en la fecha es normal;
+       lo que no puede ser es que no haya vuelta atrás.
+   ══════════════════════════════════════════════════════════════════ */
+function EditorActividad({ actividad, onChange }){
+  const { st, toast } = useApp();
+  const [cargando, setCargando] = useState(false);
+  const fotoRef = useRef(null);
+  const a = actividad;
+  const set = (k, v) => onChange({ ...a, [k]:v });
+
+  const fotos = st.evidencias.filter(e => (a.evidencias || []).includes(e.id));
+  const nuevas = a._nuevasFotos || [];
+
+  async function agregarFotos(lista){
+    setCargando(true);
+    const puestas = [];
+    for (const file of Array.from(lista).slice(0,8)){
+      if (!file.type.startsWith('image/')) continue;
+      const r = await comprimirImagen(file);
+      puestas.push({ id:uid('ev'), nombre:'Registro fotográfico', descripcion:'', tipo:'foto',
+        dataUrl:r ? r.dataUrl : null, creadoEn:new Date().toISOString() });
+    }
+    onChange({ ...a, _nuevasFotos:[...nuevas, ...puestas] });
+    setCargando(false);
+  }
+
+  function volverARedactar(){
+    if (!(a.notaCruda || '').trim()){
+      toast('No hay nota de campo de la cual partir.', 'ambar');
+      return;
+    }
+    onChange({ ...a, descripcion:redactarInstitucional(a.notaCruda, {
+      obligacionId:a.obligacionId, tipo:a.tipo, fecha:a.fecha, lugar:a.lugar,
+      participantes:Number(a.participantes) || 0,
+      evidencias:(a.evidencias || []).length + nuevas.length, instancia:a.instancia }) });
+    toast('Texto vuelto a redactar con los datos corregidos.', 'verde');
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="eyebrow mb-2 px-1 text-ink2">Obligación</h3>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {OBLIGACIONES.map(x => {
+            const activo = Number(a.obligacionId) === x.id;
+            return (
+              <button key={x.id} onClick={() => set('obligacionId', x.id)}
+                className={cx('flex min-h-[72px] flex-col justify-between rounded-xl border-2 p-2.5 text-left transition',
+                  activo ? 'border-azure bg-azuresoft' : 'border-line bg-surface hover:bg-surface2')}>
+                <Icon n={x.icon} s={17} className={activo ? 'text-azure' : 'text-ink3'} />
+                <div>
+                  <span className={cx('font-mono text-[10.5px]', activo ? 'text-azure' : 'text-ink3')}>{x.cod}</span>
+                  <p className={cx('font-display text-[12px] font-semibold leading-tight', activo ? 'text-azure' : 'text-ink')}>{x.corto}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <Campo label="Título">
+        <input className="fld" id="ea-titulo" value={a.titulo || ''} onChange={e => set('titulo', e.target.value)} />
+      </Campo>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Campo label="Tipo de actividad">
+          <select className="fld" id="ea-tipo" value={a.tipo || TIPOS[0]} onChange={e => set('tipo', e.target.value)}>
+            {TIPOS.map(t => <option key={t}>{t}</option>)}
+          </select>
+        </Campo>
+        <Campo label="Instancia">
+          <input className="fld" id="ea-instancia" value={a.instancia || ''} onChange={e => set('instancia', e.target.value)} placeholder="Comité Municipal de…" />
+        </Campo>
+        <Campo label="Fecha"><input type="date" className="fld" id="ea-fecha" value={a.fecha} onChange={e => set('fecha', e.target.value)} /></Campo>
+        <Campo label="Hora"><input type="time" className="fld" id="ea-hora" value={a.hora || ''} onChange={e => set('hora', e.target.value)} /></Campo>
+        <Campo label="Lugar"><input className="fld" id="ea-lugar" value={a.lugar || ''} onChange={e => set('lugar', e.target.value)} /></Campo>
+        <Campo label="Participantes">
+          <input type="number" min="0" className="fld tnum" id="ea-part" value={a.participantes || 0} onChange={e => set('participantes', Number(e.target.value) || 0)} />
+        </Campo>
+      </div>
+
+      <Campo label="Radicado" hint="PQRS, UNP o alerta, cuando aplique.">
+        <input className="fld" id="ea-radicado" value={a.radicado || ''} onChange={e => set('radicado', e.target.value)} placeholder="2026-EE-0000" />
+      </Campo>
+
+      <Campo label="Nota de campo original" hint="Se conserva como respaldo de lo que dijiste en campo.">
+        <textarea rows={2} className="fld resize-y text-[13.5px]" id="ea-nota" value={a.notaCruda || ''} onChange={e => set('notaCruda', e.target.value)} />
+      </Campo>
+
+      <div>
+        <Campo label="Texto institucional" hint="Es lo que sale impreso en el acta y en el informe.">
+          <textarea rows={6} className="fld resize-y leading-relaxed" id="ea-desc" value={a.descripcion || ''} onChange={e => set('descripcion', e.target.value)} />
+        </Campo>
+        <Boton icon="wand-2" variant="fucsia" className="mt-2 w-full" onClick={volverARedactar}>Volver a redactar</Boton>
+        <p className="mt-1.5 text-[11.5px] leading-snug text-ink3">
+          Rehace el texto desde la nota de campo con la obligación, la fecha y el lugar que tengas puestos ahora.
+          Pierdes los ajustes que hayas escrito a mano.
+        </p>
+      </div>
+
+      <div>
+        <div className="mb-2 flex items-center justify-between px-1">
+          <h3 className="eyebrow text-ink2">Evidencias</h3>
+          <button onClick={() => fotoRef.current.click()} className="inline-flex items-center gap-1.5 font-display text-[12px] font-semibold text-azure">
+            <Icon n="camera" s={14} /> Agregar fotos
+          </button>
+        </div>
+        <input ref={fotoRef} id="ea-fotos" type="file" accept="image/*" capture="environment" multiple hidden
+               onChange={e => { agregarFotos(e.target.files); e.target.value = ''; }} />
+        {cargando && <p className="px-1 text-[12.5px] text-ink3">Comprimiendo…</p>}
+        {(fotos.length + nuevas.length) === 0
+          ? <p className="rounded-xl border border-dashed border-line2 px-4 py-5 text-center text-[13px] text-ink3">Esta actividad no tiene evidencias.</p>
+          : <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+              {fotos.map(e => (
+                <figure key={e.id} className="overflow-hidden rounded-xl border border-line">
+                  {e.dataUrl
+                    ? <img src={e.dataUrl} alt={e.nombre} className="h-20 w-full object-cover" />
+                    : <div className="flex h-20 items-center justify-center bg-surface2 text-ink3"><Icon n="file-text" s={20} /></div>}
+                  <figcaption className="truncate px-1.5 py-1 text-[10px] text-ink3">{e.nombre}</figcaption>
+                </figure>
+              ))}
+              {nuevas.map(e => (
+                <figure key={e.id} className="relative overflow-hidden rounded-xl border-2 border-verde">
+                  <img src={e.dataUrl} alt={e.nombre} className="h-20 w-full object-cover" />
+                  <button onClick={() => onChange({ ...a, _nuevasFotos:nuevas.filter(x => x.id !== e.id) })}
+                    aria-label="Quitar foto nueva" className="absolute right-1 top-1 rounded-full bg-ink/70 p-1 text-paper">
+                    <Icon n="x" s={11} />
+                  </button>
+                  <figcaption className="truncate bg-verdesoft px-1.5 py-1 text-[10px] font-semibold text-verde">Nueva</figcaption>
+                </figure>
+              ))}
+            </div>}
+        <p className="mt-1.5 text-[11.5px] leading-snug text-ink3">
+          Para borrar una evidencia que ya estaba, ciérra esto y usa la papelera de la foto en el detalle: así queda el botón Deshacer.
+        </p>
+      </div>
+    </div>
+  );
+}
+</script>

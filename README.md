@@ -1,6 +1,6 @@
 # Bitácora Territorial
 
-**Versión 1.3.0 · Editor: Lab-S · Alcaldía Municipal de Simití, Bolívar**
+**Versión 1.4.0 · Editor: Lab-S · Alcaldía Municipal de Simití, Bolívar**
 
 PWA para una referente territorial de alcaldía municipal: capturar evidencias desde el celular durante la
 jornada y sacar los entregables oficiales —actas de comité, diapositivas ejecutivas e informe mensual de
@@ -64,6 +64,7 @@ been declared» y el segundo bloque no llega a ejecutarse. `build.py` lo verific
 | `p3` | Persistencia en `localStorage`, datos de ejemplo y las salidas (copiar a Word, imprimir, descargar). |
 | `p4` | Generadores: acta, informe mensual y diapositivas. |
 | `p5` | Primitivas de interfaz y pantalla de Inicio. |
+| `p5b` | Editor de una actividad ya guardada. |
 | `p6` | Captura rápida. |
 | `p7` | Actas: listado y editor. |
 | `p8` | Entregables y Ajustes. |

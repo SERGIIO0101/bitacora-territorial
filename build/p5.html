@@ -168,6 +168,7 @@ function Inicio({ mes, setMes }){
   const [detalle, setDetalle] = useState(null);
   const [actividad, setActividad] = useState(null);
   const [verTodo, setVerTodo] = useState(false);
+  const [editando, setEditando] = useState(null);
 
   const acts = useMemo(() => st.actividades.filter(a => mesDe(a.fecha) === mes), [st.actividades, mes]);
   const filas = useMemo(() => OBLIGACIONES.map(o => {
@@ -208,6 +209,18 @@ function Inicio({ mes, setMes }){
       setActividad(a => a && a.id === actividadId
         ? { ...a, evidencias:[...(a.evidencias || []), ev.id] } : a);
     } });
+  }
+
+  function guardarActividad(edit){
+    const nuevas = edit._nuevasFotos || [];
+    const limpio = { ...edit };
+    delete limpio._nuevasFotos;
+    limpio.evidencias = [...(limpio.evidencias || []), ...nuevas.map(e => e.id)];
+    setSt(p => ({ ...p,
+      actividades:p.actividades.map(x => x.id === limpio.id ? limpio : x),
+      evidencias:[...p.evidencias, ...nuevas.map(e => ({ ...e, actividadId:limpio.id }))] }));
+    setEditando(null);
+    toast('Actividad actualizada.', 'verde');
   }
 
   function borrarActividad(a){
@@ -355,6 +368,18 @@ function Inicio({ mes, setMes }){
         )}
       </Hoja>
 
+      <Hoja abierta={!!editando} onCerrar={() => setEditando(null)} ancho="max-w-3xl"
+            titulo="Editar actividad"
+            sub={editando ? obl(editando.obligacionId).cod + ' · ' + fechaLarga(editando.fecha) : ''}
+            pie={editando && (
+              <div className="flex gap-2">
+                <Boton icon="check" className="flex-1" onClick={() => guardarActividad(editando)}>Guardar cambios</Boton>
+                <Boton variant="fantasma" onClick={() => setEditando(null)}>Cancelar</Boton>
+              </div>
+            )}>
+        {editando && <EditorActividad actividad={editando} onChange={setEditando} />}
+      </Hoja>
+
       <Hoja abierta={!!actividad} onCerrar={() => setActividad(null)}
             titulo={actividad ? actividad.titulo : ''}
             sub={actividad ? `${obl(actividad.obligacionId).cod} · ${fechaLarga(actividad.fecha)} · ${actividad.hora || ''}` : ''}>
@@ -393,7 +418,9 @@ function Inicio({ mes, setMes }){
                   <p className="rounded-xl border border-dashed border-line2 p-3 text-[13px] italic leading-relaxed text-ink3">«{actividad.notaCruda}»</p>
                 </div>
               )}
-              <div className="flex gap-2 border-t border-line pt-3">
+              <div className="flex flex-wrap gap-2 border-t border-line pt-3">
+                <Boton icon="pencil" variant="linea" className="flex-1"
+                  onClick={() => { const a = actividad; setActividad(null); setEditando({ ...a }); }}>Editar</Boton>
                 <Boton icon="file-plus" className="flex-1" onClick={() => { const a = actividad; setActividad(null); abrirActa(a); }}>Crear acta</Boton>
                 <Boton icon="trash-2" variant="linea" onClick={() => borrarActividad(actividad)}>Eliminar</Boton>
               </div>
