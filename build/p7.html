@@ -1,0 +1,281 @@
+<script type="text/babel" data-presets="react">
+/* ══════════════════════════════════════════════════════════════════
+   10. PANTALLA · ACTAS
+   ══════════════════════════════════════════════════════════════════ */
+const ORDEN_BASE = [
+  'Verificación del quórum e instalación de la sesión',
+  'Lectura y aprobación del orden del día',
+  'Seguimiento a compromisos de la sesión anterior',
+  'Desarrollo del tema central',
+  'Proposiciones y varios'
+];
+
+function actaNueva(st, base){
+  const anio = hoyISO().slice(0,4);
+  const n = st.actas.filter(a => (a.fecha||'').slice(0,4) === anio).length + 1;
+  const orden = ORDEN_BASE.slice();
+  return {
+    id:uid('acta'), consecutivo:String(n).padStart(3,'0'),
+    obligacionId:base ? base.obligacionId : 1,
+    instancia:base ? (base.instancia || base.titulo) : '',
+    fecha:base ? base.fecha : hoyISO(),
+    horaInicio:base ? (base.hora || '08:00') : '08:00', horaFin:'10:00',
+    lugar:base ? base.lugar : '', modalidad:'Presencial',
+    convoca:st.config.secretaria,
+    objetivo:base ? (base.descripcion || '').split('. ').slice(0,1).join('. ') + '.' : '',
+    ordenDia:orden,
+    desarrollo:orden.map((_,i) => ({ punto:i+1, texto:i === 3 && base ? base.descripcion : '' })),
+    compromisos:[], asistentes:[],
+    conclusiones:'La sesión se desarrolló en el marco del reglamento interno de la instancia. Se levanta la sesión en la hora señalada.',
+    evidencias:base ? (base.evidencias || []).slice() : [],
+    elaboradaPor:st.config.contratista, creadaEn:hoyISO()
+  };
+}
+
+function EditorActa({ acta, onGuardar, onCerrar }){
+  const { st } = useApp();
+  const [a, setA] = useState(acta);
+  const up = (k,v) => setA(p => ({ ...p, [k]:v }));
+
+  const evsDisponibles = useMemo(() => {
+    const ids = new Set(st.actividades.filter(x => x.fecha === a.fecha || x.obligacionId === Number(a.obligacionId)).flatMap(x => x.evidencias || []));
+    return st.evidencias.filter(e => ids.has(e.id));
+  }, [st.evidencias, st.actividades, a.fecha, a.obligacionId]);
+
+  function setOrden(i, v){
+    const orden = a.ordenDia.slice(); orden[i] = v;
+    setA(p => ({ ...p, ordenDia:orden }));
+  }
+  function addPunto(){
+    setA(p => ({ ...p, ordenDia:[...p.ordenDia, ''], desarrollo:[...p.desarrollo, { punto:p.ordenDia.length+1, texto:'' }] }));
+  }
+  function delPunto(i){
+    setA(p => {
+      const ordenDia = p.ordenDia.filter((_,k) => k !== i);
+      const desarrollo = p.ordenDia
+        .map((_,k) => ({ texto:(p.desarrollo[k] || {}).texto || '' }))
+        .filter((_,k) => k !== i)
+        .map((d,k) => ({ punto:k+1, texto:d.texto }));
+      return { ...p, ordenDia, desarrollo };
+    });
+  }
+  function setDesarrollo(i, texto){
+    setA(p => {
+      const d = p.ordenDia.map((_,k) => ({ punto:k+1, texto:(p.desarrollo[k] || {}).texto || '' }));
+      d[i] = { punto:i+1, texto };
+      return { ...p, desarrollo:d };
+    });
+  }
+  function redactarPunto(i){
+    const texto = (a.desarrollo[i] || {}).texto || '';
+    if (!texto.trim()) return;
+    setDesarrollo(i, redactarInstitucional(texto, { obligacionId:a.obligacionId, tipo:'Comité de política pública', fecha:a.fecha, lugar:a.lugar, instancia:a.instancia }));
+  }
+  const addFila = (k, obj) => setA(p => ({ ...p, [k]:[...(p[k]||[]), obj] }));
+  const setFila = (k, id, campo, v) => setA(p => ({ ...p, [k]:p[k].map(x => x.id === id ? { ...x, [campo]:v } : x) }));
+  const delFila = (k, id) => setA(p => ({ ...p, [k]:p[k].filter(x => x.id !== id) }));
+
+  return (
+    <div className="space-y-5">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Campo label="Acta N.º"><input className="fld tnum" id="ac-cons" value={a.consecutivo} onChange={e => up('consecutivo', e.target.value)} /></Campo>
+        <Campo label="Obligación">
+          <select className="fld" id="ac-obl" value={a.obligacionId} onChange={e => up('obligacionId', Number(e.target.value))}>
+            {OBLIGACIONES.map(o => <option key={o.id} value={o.id}>{o.cod} — {o.corto}</option>)}
+          </select>
+        </Campo>
+        <Campo label="Instancia" req className="sm:col-span-2">
+          <input className="fld" id="ac-inst" value={a.instancia} onChange={e => up('instancia', e.target.value)} placeholder="Consejo Territorial de Paz…" />
+        </Campo>
+        <Campo label="Fecha"><input type="date" className="fld" id="ac-fecha" value={a.fecha} onChange={e => up('fecha', e.target.value)} /></Campo>
+        <Campo label="Modalidad">
+          <select className="fld" id="ac-mod" value={a.modalidad} onChange={e => up('modalidad', e.target.value)}>
+            {['Presencial','Virtual','Mixta'].map(m => <option key={m}>{m}</option>)}
+          </select>
+        </Campo>
+        <Campo label="Hora de inicio"><input type="time" className="fld" id="ac-hi" value={a.horaInicio} onChange={e => up('horaInicio', e.target.value)} /></Campo>
+        <Campo label="Hora de cierre"><input type="time" className="fld" id="ac-hf" value={a.horaFin} onChange={e => up('horaFin', e.target.value)} /></Campo>
+        <Campo label="Lugar"><input className="fld" id="ac-lugar" value={a.lugar} onChange={e => up('lugar', e.target.value)} /></Campo>
+        <Campo label="Convoca"><input className="fld" id="ac-conv" value={a.convoca} onChange={e => up('convoca', e.target.value)} /></Campo>
+      </div>
+
+      <Campo label="Objetivo de la sesión">
+        <textarea rows={2} className="fld resize-y" id="ac-obj" value={a.objetivo} onChange={e => up('objetivo', e.target.value)} />
+      </Campo>
+
+      <section>
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="eyebrow text-ink2">Orden del día y desarrollo</h3>
+          <Boton icon="plus" variant="fantasma" onClick={addPunto}>Punto</Boton>
+        </div>
+        <div className="space-y-2.5">
+          {a.ordenDia.map((p, i) => (
+            <div key={i} className="rounded-xl border border-line bg-surface p-3">
+              <div className="flex items-center gap-2">
+                <span className="flex h-6 w-6 flex-none items-center justify-center rounded-md bg-azuresoft font-mono text-[11.5px] font-medium text-azure">{i+1}</span>
+                <input className="min-w-0 flex-1 border-0 bg-transparent font-display text-[14px] font-semibold outline-none" value={p}
+                  onChange={e => setOrden(i, e.target.value)} placeholder="Título del punto" />
+                <button onClick={() => delPunto(i)} aria-label="Eliminar punto" className="text-ink3 hover:text-rojo"><Icon n="trash-2" s={15} /></button>
+              </div>
+              <textarea rows={2} className="fld mt-2 resize-y text-[13.5px] leading-relaxed"
+                value={(a.desarrollo[i] || {}).texto || ''} onChange={e => setDesarrollo(i, e.target.value)}
+                placeholder="Qué pasó en este punto. Escríbelo como salga: luego se convierte a lenguaje institucional." />
+              <button onClick={() => redactarPunto(i)} className="mt-1.5 inline-flex items-center gap-1 text-[11.5px] font-semibold text-fucsia hover:underline">
+                <Icon n="wand-2" s={13} /> Redactar institucional
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="eyebrow text-ink2">Compromisos</h3>
+          <Boton icon="plus" variant="fantasma" onClick={() => addFila('compromisos', { id:uid('c'), descripcion:'', responsable:'', entidad:'', fecha:'', estado:'Pendiente' })}>Compromiso</Boton>
+        </div>
+        {(a.compromisos || []).length === 0
+          ? <p className="rounded-xl border border-dashed border-line2 px-4 py-5 text-center text-[13px] text-ink3">Sin compromisos. Se imprime la nota «la sesión no generó compromisos».</p>
+          : <div className="space-y-2">
+              {a.compromisos.map((c,i) => (
+                <div key={c.id} className="rounded-xl border border-line bg-surface p-3">
+                  <div className="flex items-start gap-2">
+                    <span className="mt-2 font-mono text-[11px] text-ink3">{i+1}</span>
+                    <textarea rows={2} className="fld flex-1 resize-y text-[13.5px]" value={c.descripcion} placeholder="Compromiso adquirido"
+                      onChange={e => setFila('compromisos', c.id, 'descripcion', e.target.value)} />
+                    <button onClick={() => delFila('compromisos', c.id)} aria-label="Eliminar compromiso" className="mt-2 text-ink3 hover:text-rojo"><Icon n="trash-2" s={15} /></button>
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    <input className="fld text-[13px]" placeholder="Responsable" value={c.responsable} onChange={e => setFila('compromisos', c.id, 'responsable', e.target.value)} />
+                    <input className="fld text-[13px]" placeholder="Entidad" value={c.entidad} onChange={e => setFila('compromisos', c.id, 'entidad', e.target.value)} />
+                    <input type="date" className="fld text-[13px]" value={c.fecha} onChange={e => setFila('compromisos', c.id, 'fecha', e.target.value)} />
+                    <select className="fld text-[13px]" value={c.estado} onChange={e => setFila('compromisos', c.id, 'estado', e.target.value)}>
+                      {['Pendiente','En trámite','Cumplido'].map(x => <option key={x}>{x}</option>)}
+                    </select>
+                  </div>
+                </div>
+              ))}
+            </div>}
+      </section>
+
+      <section>
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="eyebrow text-ink2">Asistentes</h3>
+          <Boton icon="user-plus" variant="fantasma" onClick={() => addFila('asistentes', { id:uid('as'), nombre:'', cargo:'', entidad:'', contacto:'' })}>Asistente</Boton>
+        </div>
+        {(a.asistentes || []).length === 0
+          ? <p className="rounded-xl border border-dashed border-line2 px-4 py-5 text-center text-[13px] text-ink3">Sin asistentes cargados: el acta remite a la planilla anexa.</p>
+          : <div className="space-y-2">
+              {a.asistentes.map(s => (
+                <div key={s.id} className="grid grid-cols-2 gap-2 rounded-xl border border-line bg-surface p-2.5 sm:grid-cols-7">
+                  <input className="fld text-[13px] sm:col-span-2" placeholder="Nombre" value={s.nombre} onChange={e => setFila('asistentes', s.id, 'nombre', e.target.value)} />
+                  <input className="fld text-[13px] sm:col-span-2" placeholder="Cargo" value={s.cargo} onChange={e => setFila('asistentes', s.id, 'cargo', e.target.value)} />
+                  <input className="fld text-[13px] sm:col-span-2" placeholder="Entidad" value={s.entidad} onChange={e => setFila('asistentes', s.id, 'entidad', e.target.value)} />
+                  <button onClick={() => delFila('asistentes', s.id)} aria-label="Quitar asistente" className="justify-self-end px-2 text-ink3 hover:text-rojo"><Icon n="trash-2" s={15} /></button>
+                </div>
+              ))}
+            </div>}
+      </section>
+
+      <section>
+        <h3 className="eyebrow mb-2 text-ink2">Anexo fotográfico — se compila al final del acta</h3>
+        {evsDisponibles.length === 0
+          ? <p className="rounded-xl border border-dashed border-line2 px-4 py-5 text-center text-[13px] text-ink3">No hay evidencias capturadas para esta fecha u obligación.</p>
+          : <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+              {evsDisponibles.map(e => {
+                const on = (a.evidencias || []).includes(e.id);
+                return (
+                  <button key={e.id} onClick={() => up('evidencias', on ? a.evidencias.filter(x => x !== e.id) : [...(a.evidencias||[]), e.id])}
+                    className={cx('overflow-hidden rounded-xl border text-left transition', on ? 'border-azure ring-2 ring-azure/30' : 'border-line hover:border-line2')}>
+                    {e.dataUrl ? <img src={e.dataUrl} alt={e.nombre} className="h-20 w-full object-cover" />
+                      : <div className="flex h-20 items-center justify-center bg-surface2 text-ink3"><Icon n="file-text" s={22} /></div>}
+                    <div className="flex items-center gap-1 p-1.5">
+                      <Icon n={on ? 'check-square' : 'square'} s={13} className={on ? 'text-azure' : 'text-ink3'} />
+                      <span className="truncate text-[10.5px] text-ink2">{e.nombre}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>}
+      </section>
+
+      <Campo label="Conclusiones y cierre">
+        <textarea rows={2} className="fld resize-y" id="ac-concl" value={a.conclusiones} onChange={e => up('conclusiones', e.target.value)} />
+      </Campo>
+
+      <div className="sticky bottom-0 -mx-4 flex gap-2 border-t border-line bg-paper px-4 py-3 sm:-mx-5 sm:px-5">
+        <Boton icon="check" onClick={() => onGuardar(a)} className="flex-1">Guardar acta</Boton>
+        <Boton variant="fantasma" onClick={onCerrar}>Cancelar</Boton>
+      </div>
+    </div>
+  );
+}
+
+function Actas({ pedido, limpiarPedido }){
+  const { st, setSt, toast, abrirDoc } = useApp();
+  const [edit, setEdit] = useState(null);
+
+  useEffect(() => {
+    if (!pedido) return;
+    if (pedido.desdeActividad){
+      const base = st.actividades.find(x => x.id === pedido.desdeActividad);
+      setEdit(actaNueva(st, base));
+    }
+    limpiarPedido();
+  }, [pedido]);
+
+  const guardar = a => {
+    setSt(p => ({ ...p, actas: p.actas.some(x => x.id === a.id) ? p.actas.map(x => x.id === a.id ? a : x) : [a, ...p.actas] }));
+    setEdit(null);
+    toast('Acta guardada. Ya puedes exportarla.', 'verde');
+  };
+  const eliminar = id => { setSt(p => ({ ...p, actas:p.actas.filter(x => x.id !== id) })); toast('Acta eliminada.', 'ambar'); };
+
+  const lista = [...st.actas].sort((a,b) => (b.fecha||'').localeCompare(a.fecha||''));
+
+  return (
+    <div className="space-y-4">
+      <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
+        <div>
+          <h2 className="font-display text-[16px] font-bold">Actas de comité</h2>
+          <p className="text-[12.5px] text-ink3">Orden del día, desarrollo, compromisos y anexo fotográfico al final.</p>
+        </div>
+        <Boton icon="file-plus" onClick={() => setEdit(actaNueva(st))}>Nueva acta</Boton>
+      </Card>
+
+      {lista.length === 0
+        ? <Vacio icon="file-text" titulo="Todavía no hay actas" texto="Crea un acta desde cero o genérala a partir de una actividad ya capturada." />
+        : <div className="space-y-2">
+            {lista.map(a => {
+              const o = obl(a.obligacionId);
+              const pend = (a.compromisos||[]).filter(c => c.estado !== 'Cumplido').length;
+              return (
+                <Card key={a.id} className="rail p-3.5 pl-4" style={{ '--rail':'rgb(var(--azure))' }}>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-[11.5px] text-ink3">ACTA {a.consecutivo}-{(a.fecha||'').slice(0,4)}</span>
+                        <Chip tone="azure">{o.cod}</Chip>
+                        {pend > 0 && <Chip tone="ambar">{pend} compromiso{pend === 1 ? '' : 's'} abierto{pend === 1 ? '' : 's'}</Chip>}
+                      </div>
+                      <p className="mt-1 font-display text-[14.5px] font-semibold leading-snug">{a.instancia || 'Sin instancia'}</p>
+                      <p className="mt-0.5 text-[12px] text-ink3">{fechaLarga(a.fecha)} · {a.lugar || 'sin lugar'} · {(a.evidencias||[]).length} anexos</p>
+                    </div>
+                    <div className="flex flex-none items-center gap-1">
+                      <button onClick={() => abrirDoc(construirActa(a, st))} className="rounded-lg border border-line2 bg-surface px-2.5 py-2 text-ink2 hover:bg-surface2" title="Ver y exportar"><Icon n="eye" s={16} /></button>
+                      <button onClick={() => setEdit(a)} className="rounded-lg border border-line2 bg-surface px-2.5 py-2 text-ink2 hover:bg-surface2" title="Editar"><Icon n="pencil" s={16} /></button>
+                      <button onClick={() => eliminar(a.id)} className="rounded-lg border border-line2 bg-surface px-2.5 py-2 text-ink3 hover:bg-rojosoft hover:text-rojo" title="Eliminar"><Icon n="trash-2" s={16} /></button>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>}
+
+      <Hoja abierta={!!edit} onCerrar={() => setEdit(null)} ancho="max-w-3xl"
+            titulo={edit ? `Acta N.º ${edit.consecutivo}` : ''} sub="Se numera automáticamente por año">
+        {edit && <EditorActa acta={edit} onGuardar={guardar} onCerrar={() => setEdit(null)} />}
+      </Hoja>
+    </div>
+  );
+}
+</script>

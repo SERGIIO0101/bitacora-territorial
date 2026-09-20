@@ -1,0 +1,360 @@
+<script type="text/babel" data-presets="react">
+/* ══════════════════════════════════════════════════════════════════
+   7. PRIMITIVAS DE INTERFAZ
+   ══════════════════════════════════════════════════════════════════ */
+const Ctx = React.createContext(null);
+const useApp = () => React.useContext(Ctx);
+
+const pascal = n => String(n).split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+function Icon({ n, s = 20, className = '', stroke = 1.75 }){
+  const lib = (window.lucide && (window.lucide.icons || window.lucide)) || {};
+  let node = lib[pascal(n)] || lib[n];
+  if (node && node[0] === 'svg') node = node[2];
+  const hijos = Array.isArray(node) ? node : null;
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={s} height={s} viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round"
+         className={className} aria-hidden="true" focusable="false">
+      {hijos
+        ? hijos.map(([tag, attrs], i) => React.createElement(tag, { key:i, ...attrs }))
+        : <circle cx="12" cy="12" r="8" />}
+    </svg>
+  );
+}
+
+const Chip = ({ children, tone = 'neutro', className = '' }) => {
+  const t = { neutro:'bg-surface2 text-ink2 border-line2', azure:'bg-azuresoft text-azure border-azure/30',
+    fucsia:'bg-fucsiasoft text-fucsia border-fucsia/30', verde:'bg-verdesoft text-verde border-verde/30',
+    ambar:'bg-ambarsoft text-ambar border-ambar/30', rojo:'bg-rojosoft text-rojo border-rojo/30' }[tone];
+  return <span className={cx('inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-display font-semibold uppercase tracking-wide', t, className)}>{children}</span>;
+};
+
+const Card = ({ children, className = '', ...p }) => (
+  <div {...p} className={cx('rounded-2xl border border-line bg-surface shadow-card', className)}>{children}</div>
+);
+
+const Campo = ({ label, hint, children, req, className = '' }) => (
+  <label className={cx('block', className)}>
+    <span className="eyebrow text-ink2 flex items-center gap-1.5">{label}{req && <span className="text-fucsia">*</span>}</span>
+    <div className="mt-1.5">{children}</div>
+    {hint && <span className="mt-1 block text-[12px] leading-snug text-ink3">{hint}</span>}
+  </label>
+);
+
+function Boton({ children, icon, variant = 'primario', className = '', ...p }){
+  const v = {
+    primario:'bg-azure text-paper border-azure hover:brightness-110',
+    fucsia:'bg-fucsia text-paper border-fucsia hover:brightness-110',
+    suave:'bg-surface2 text-ink border-line2 hover:bg-surface3',
+    linea:'bg-surface text-ink border-line2 hover:bg-surface2',
+    fantasma:'bg-transparent text-ink2 border-transparent hover:bg-surface2'
+  }[variant];
+  return (
+    <button {...p} className={cx('inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2.5 font-display text-[13.5px] font-semibold transition disabled:opacity-40 disabled:pointer-events-none', v, className)}>
+      {icon && <Icon n={icon} s={17} />}{children}
+    </button>
+  );
+}
+
+function Hoja({ abierta, onCerrar, titulo, sub, children, ancho = 'max-w-2xl' }){
+  useEffect(() => {
+    if (!abierta) return;
+    const h = e => { if (e.key === 'Escape') onCerrar(); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [abierta, onCerrar]);
+  if (!abierta) return null;
+  return (
+    <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center" role="dialog" aria-modal="true" aria-label={titulo}>
+      <div className="absolute inset-0 bg-ink/40 backdrop-blur-[2px]" onClick={onCerrar} />
+      <div className={cx('relative w-full anim-in bg-paper shadow-pop rounded-t-3xl sm:rounded-2xl border border-line flex flex-col', ancho)}
+           style={{ maxHeight:'min(90vh, 900px)' }}>
+        <div className="flex items-start gap-3 border-b border-line px-4 py-3.5 sm:px-5">
+          <div className="min-w-0 flex-1">
+            <h2 className="font-display text-[16px] font-bold leading-tight">{titulo}</h2>
+            {sub && <p className="mt-0.5 text-[12.5px] text-ink3 leading-snug">{sub}</p>}
+          </div>
+          <button onClick={onCerrar} aria-label="Cerrar" className="rounded-lg p-1.5 text-ink2 hover:bg-surface2"><Icon n="x" s={20} /></button>
+        </div>
+        <div className="overflow-y-auto px-4 py-4 sm:px-5">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function Barra({ p, k = 'azure', alto = 'h-2' }){
+  const c = { azure:'bg-azure', verde:'bg-verde', ambar:'bg-ambar', rojo:'bg-rojo' }[k];
+  return (
+    <div className={cx('w-full overflow-hidden rounded-full bg-surface3', alto)}>
+      <div className={cx('h-full rounded-full transition-all duration-500', c)} style={{ width:Math.max(p, 2) + '%' }} />
+    </div>
+  );
+}
+
+const Vacio = ({ icon, titulo, texto, accion }) => (
+  <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-line2 px-5 py-9 text-center">
+    <Icon n={icon} s={26} className="text-ink3" />
+    <p className="font-display text-[14.5px] font-semibold">{titulo}</p>
+    <p className="max-w-sm text-[13px] leading-relaxed text-ink3">{texto}</p>
+    {accion}
+  </div>
+);
+
+/* ══════════════════════════════════════════════════════════════════
+   8. PANTALLA · INICIO
+      Feed de evidencias para revisar con el pulgar, con el semáforo
+      de las 11 obligaciones siempre visible en la banda superior.
+   ══════════════════════════════════════════════════════════════════ */
+function TarjetaActividad({ a, estado, fotos, extras, onAbrir, onActa }){
+  const o = obl(a.obligacionId);
+  return (
+    <Card className="overflow-hidden rail" style={{ '--rail':SEM[estado.k].rail }}>
+      <button onClick={onAbrir} className="block w-full text-left">
+        <div className="flex items-center gap-2.5 py-3 pl-4 pr-3.5">
+          <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-surface2 text-ink2"><Icon n={o.icon} s={18} /></span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono text-[11px] text-ink3">{o.cod}</span>
+              <span className={cx('h-2 w-2 rounded-full', SEM[estado.k].dot)} />
+              <span className="truncate text-[11.5px] text-ink3">{estado.label}</span>
+            </div>
+            <p className="truncate font-display text-[13.5px] font-semibold">{o.corto}</p>
+          </div>
+          <span className="flex-none text-[11.5px] text-ink3">{fechaRelativa(a.fecha)}</span>
+        </div>
+
+        {fotos.length > 0 && (
+          <div className="relative">
+            <img src={fotos[0].dataUrl} alt={fotos[0].nombre} className="h-52 w-full bg-surface2 object-cover sm:h-64" />
+            {fotos.length > 1 && (
+              <span className="absolute bottom-2 right-2 rounded-lg bg-ink/70 px-2 py-1 font-mono text-[11px] text-paper">+{fotos.length - 1}</span>
+            )}
+          </div>
+        )}
+
+        <div className="py-3 pl-4 pr-3.5">
+          <p className="font-display text-[15px] font-semibold leading-snug">{a.titulo}</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-ink2"
+             style={{ display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
+            {a.descripcion || a.notaCruda}
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-ink3">
+            {a.lugar && <span className="inline-flex items-center gap-1"><Icon n="map-pin" s={12} />{a.lugar}</span>}
+            {a.participantes > 0 && <span className="inline-flex items-center gap-1"><Icon n="users" s={12} />{a.participantes}</span>}
+            {extras > 0 && <span className="inline-flex items-center gap-1"><Icon n="paperclip" s={12} />{extras} soporte{extras === 1 ? '' : 's'}</span>}
+          </div>
+        </div>
+      </button>
+      <div className="flex divide-x divide-line border-t border-line">
+        <button onClick={onAbrir} className="flex flex-1 items-center justify-center gap-1.5 py-3 text-[12.5px] font-semibold text-ink2 hover:bg-surface2">
+          <Icon n="maximize-2" s={15} />Ver
+        </button>
+        <button onClick={onActa} className="flex flex-1 items-center justify-center gap-1.5 py-3 text-[12.5px] font-semibold text-azure hover:bg-azuresoft">
+          <Icon n="file-plus" s={15} />Acta
+        </button>
+      </div>
+    </Card>
+  );
+}
+
+function Inicio({ mes, setMes }){
+  const { st, ir } = useApp();
+  const [detalle, setDetalle] = useState(null);
+  const [actividad, setActividad] = useState(null);
+  const [verTodo, setVerTodo] = useState(false);
+
+  const acts = useMemo(() => st.actividades.filter(a => mesDe(a.fecha) === mes), [st.actividades, mes]);
+  const filas = useMemo(() => OBLIGACIONES.map(o => {
+    const sub = acts.filter(a => a.obligacionId === o.id).sort((a,b) => b.fecha.localeCompare(a.fecha));
+    return { o, sub, e:estadoSem(sub.length, o.meta), ev:sub.reduce((n,a) => n + (a.evidencias||[]).length, 0) };
+  }), [acts]);
+  const porObligacion = useMemo(() => {
+    const m = {};
+    filas.forEach(f => { m[f.o.id] = f.e; });
+    return m;
+  }, [filas]);
+
+  const feed = useMemo(() => [...acts].sort((a,b) =>
+    (b.fecha + (b.hora || '')).localeCompare(a.fecha + (a.hora || ''))), [acts]);
+  const evDe = useCallback(a => st.evidencias.filter(e => (a.evidencias || []).includes(e.id)), [st.evidencias]);
+
+  const totalEv = filas.reduce((n,f) => n + f.ev, 0);
+  const global = Math.round(filas.reduce((s,f) => s + f.e.p, 0) / 11);
+  const vencidos = useMemo(() => st.actas.flatMap(a => (a.compromisos || []).map(c => ({ ...c, instancia:a.instancia })))
+    .filter(c => c.estado !== 'Cumplido' && c.fecha && c.fecha < hoyISO()), [st.actas]);
+  const enRojo = filas.filter(f => f.e.k === 'rojo');
+  const abrirActa = a => ir('actas', { desdeActividad:a.id });
+
+  return (
+    <div className="space-y-4">
+      {/* Avance: visible al abrir la app, sin un solo toque */}
+      <Card className="overflow-hidden">
+        <div className="flex items-center justify-between gap-3 px-4 py-3">
+          <div className="min-w-0">
+            <p className="eyebrow text-azure first-letter:uppercase">{mesLargo(mes)}</p>
+            <p className="mt-0.5 font-display text-[13.5px] font-semibold">
+              <span className="text-[24px] leading-none tnum">{acts.length}</span>
+              <span className="text-ink2"> actividades · {totalEv} evidencias</span>
+            </p>
+          </div>
+          <button onClick={() => setVerTodo(true)} className="flex-none rounded-xl border border-line2 px-3 py-2 text-center hover:bg-surface2">
+            <div className="font-display text-[20px] font-bold leading-none tnum text-azure">{global}%</div>
+            <div className="text-[10.5px] text-ink3">avance</div>
+          </button>
+        </div>
+        <div className="flex gap-1.5 overflow-x-auto px-4 pb-3.5" style={{ scrollbarWidth:'thin' }}>
+          {filas.map(({ o, sub, e }) => (
+            <button key={o.id} onClick={() => setDetalle({ o, sub, e })}
+              className="flex flex-none items-center gap-1.5 rounded-full border border-line2 bg-surface px-2.5 py-1.5 hover:bg-surface2">
+              <span className={cx('h-2 w-2 rounded-full', SEM[e.k].dot)} />
+              <span className="font-mono text-[11.5px] tnum text-ink2">{o.cod}</span>
+              <span className="font-mono text-[11px] tnum text-ink3">{sub.length}/{o.meta}</span>
+            </button>
+          ))}
+          <button onClick={() => setVerTodo(true)} className="flex flex-none items-center gap-1 rounded-full border border-azure/40 bg-azuresoft px-2.5 py-1.5 font-display text-[11.5px] font-semibold text-azure">
+            Ver todo <Icon n="chevron-right" s={13} />
+          </button>
+        </div>
+      </Card>
+
+      {(vencidos.length > 0 || enRojo.length > 0) && (
+        <Card className="border-ambar/40 bg-ambarsoft/50 p-4">
+          <div className="flex items-center gap-2">
+            <Icon n="alert-triangle" s={17} className="text-ambar" />
+            <h3 className="font-display text-[14px] font-bold">Requiere tu atención</h3>
+          </div>
+          <ul className="mt-2.5 space-y-1.5 text-[13px] leading-snug">
+            {vencidos.slice(0,2).map(c => (
+              <li key={c.id} className="flex gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 flex-none rounded-full bg-rojo" />
+                <span>Compromiso vencido el {fechaCorta(c.fecha)} — <strong>{c.entidad}</strong>: {c.descripcion}</span>
+              </li>
+            ))}
+            {enRojo.length > 0 && (
+              <li className="flex gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 flex-none rounded-full bg-ambar" />
+                <span>{enRojo.length === 1 ? 'La obligación' : 'Las obligaciones'} {enRojo.map(f => f.o.cod).join(', ')} {enRojo.length === 1 ? 'está' : 'están'} por debajo del 40% de la meta del mes.</span>
+              </li>
+            )}
+          </ul>
+        </Card>
+      )}
+
+      {feed.length === 0
+        ? <Vacio icon="camera" titulo="Sin registros este mes" texto="Toca el botón + y captura la primera evidencia: una foto o una nota dictada bastan."
+            accion={<Boton icon="plus" onClick={() => ir('capturar')}>Capturar ahora</Boton>} />
+        : <div className="space-y-3">
+            <h3 className="eyebrow px-1 text-ink2">Evidencias capturadas</h3>
+            {feed.map(a => {
+              const evs = evDe(a);
+              const fotos = evs.filter(e => e.tipo === 'foto' && e.dataUrl);
+              return (
+                <TarjetaActividad key={a.id} a={a} estado={porObligacion[a.obligacionId] || estadoSem(0,1)}
+                  fotos={fotos} extras={evs.length - fotos.length}
+                  onAbrir={() => setActividad(a)} onActa={() => abrirActa(a)} />
+              );
+            })}
+          </div>}
+
+      <Hoja abierta={verTodo} onCerrar={() => setVerTodo(false)} ancho="max-w-3xl"
+            titulo="Semáforo de las 11 obligaciones" sub={`${mesLargo(mes)} · ${global}% de avance frente a las metas`}>
+        <div className="mb-3 flex items-center gap-3 text-[11.5px] text-ink3">
+          {[['verde','Cumplida'],['ambar','En avance'],['rojo','En riesgo']].map(([k,l]) => (
+            <span key={k} className="flex items-center gap-1"><span className={cx('h-2 w-2 rounded-full', SEM[k].dot)} />{l}</span>
+          ))}
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {filas.map(({ o, sub, e, ev }) => (
+            <button key={o.id} onClick={() => { setVerTodo(false); setDetalle({ o, sub, e }); }}
+              className="rail w-full rounded-xl border border-line bg-surface p-3 pl-4 text-left transition hover:bg-surface2"
+              style={{ '--rail':SEM[e.k].rail }}>
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-surface2 text-ink2"><Icon n={o.icon} s={17} /></span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[11px] text-ink3">{o.cod}</span>
+                    <Chip tone={e.k}>{e.label}</Chip>
+                  </div>
+                  <p className="mt-0.5 truncate font-display text-[14.5px] font-semibold">{o.corto}</p>
+                  <div className="mt-2 flex items-center gap-2.5">
+                    <Barra p={e.p} k={e.k} alto="h-1.5" />
+                    <span className="flex-none font-mono text-[11.5px] tnum text-ink2">{sub.length}/{o.meta}</span>
+                  </div>
+                  <p className="mt-1.5 text-[11.5px] text-ink3">
+                    {sub.length ? `Último registro: ${fechaCorta(sub[0].fecha)} · ${ev} evidencia${ev === 1 ? '' : 's'}` : 'Sin actividades este mes'}
+                  </p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </Hoja>
+
+      <Hoja abierta={!!detalle} onCerrar={() => setDetalle(null)}
+            titulo={detalle ? `${detalle.o.cod} · ${detalle.o.corto}` : ''} sub={detalle ? detalle.o.eje : ''}>
+        {detalle && (
+          <div className="space-y-3">
+            <p className="rounded-xl border border-line bg-surface2 p-3 text-[13px] leading-relaxed text-ink2">{detalle.o.titulo}</p>
+            <div className="flex items-center gap-3">
+              <Barra p={detalle.e.p} k={detalle.e.k} />
+              <span className="flex-none font-mono text-[12px] tnum">{detalle.e.p}%</span>
+            </div>
+            {detalle.sub.length === 0
+              ? <Vacio icon="calendar-off" titulo="Sin actividades en el período" texto="Captura una evidencia para que esta obligación deje de estar en rojo."
+                  accion={<Boton icon="plus" onClick={() => { const id = detalle.o.id; setDetalle(null); ir('capturar', { obligacionId:id }); }}>Capturar ahora</Boton>} />
+              : detalle.sub.map(a => (
+                <button key={a.id} onClick={() => { setDetalle(null); setActividad(a); }} className="w-full rounded-xl border border-line p-3 text-left hover:bg-surface2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-[11.5px] text-ink3">{fechaCorta(a.fecha)} · {a.hora}</span>
+                    <Chip>{(a.evidencias || []).length} evid.</Chip>
+                  </div>
+                  <p className="mt-1 font-display text-[14px] font-semibold leading-snug">{a.titulo}</p>
+                </button>
+              ))}
+          </div>
+        )}
+      </Hoja>
+
+      <Hoja abierta={!!actividad} onCerrar={() => setActividad(null)}
+            titulo={actividad ? actividad.titulo : ''}
+            sub={actividad ? `${obl(actividad.obligacionId).cod} · ${fechaLarga(actividad.fecha)} · ${actividad.hora || ''}` : ''}>
+        {actividad && (() => {
+          const evs = evDe(actividad);
+          const fotos = evs.filter(e => e.tipo === 'foto' && e.dataUrl);
+          return (
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-1.5">
+                <Chip tone="azure">{actividad.tipo}</Chip>
+                {actividad.lugar && <Chip><Icon n="map-pin" s={11} />{actividad.lugar}</Chip>}
+                {actividad.participantes > 0 && <Chip><Icon n="users" s={11} />{actividad.participantes}</Chip>}
+                {actividad.radicado && <Chip tone="fucsia">{actividad.radicado}</Chip>}
+              </div>
+              {fotos.length > 0 && (
+                <div className="grid grid-cols-2 gap-2">
+                  {fotos.map(e => (
+                    <figure key={e.id} className="overflow-hidden rounded-xl border border-line">
+                      <img src={e.dataUrl} alt={e.nombre} className="h-32 w-full object-cover" />
+                      <figcaption className="px-2 py-1.5 text-[11px] text-ink3">{e.nombre}</figcaption>
+                    </figure>
+                  ))}
+                </div>
+              )}
+              <div>
+                <p className="eyebrow mb-1 text-ink2">Redacción institucional</p>
+                <p className="rounded-xl border border-line bg-surface p-3 text-[13.5px] leading-relaxed">{actividad.descripcion}</p>
+              </div>
+              {actividad.notaCruda && (
+                <div>
+                  <p className="eyebrow mb-1 text-ink2">Nota de campo original</p>
+                  <p className="rounded-xl border border-dashed border-line2 p-3 text-[13px] italic leading-relaxed text-ink3">«{actividad.notaCruda}»</p>
+                </div>
+              )}
+              <Boton icon="file-plus" className="w-full" onClick={() => { const a = actividad; setActividad(null); abrirActa(a); }}>Crear acta de esta actividad</Boton>
+            </div>
+          );
+        })()}
+      </Hoja>
+    </div>
+  );
+}
+</script>

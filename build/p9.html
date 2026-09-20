@@ -1,0 +1,222 @@
+<script type="text/babel" data-presets="react">
+/* ══════════════════════════════════════════════════════════════════
+   13. VISOR DE DOCUMENTO — copiar a Word · imprimir · descargar
+   ══════════════════════════════════════════════════════════════════ */
+function VisorDocumento({ doc, onCerrar }){
+  const { toast } = useApp();
+  const hoja = useRef(null);
+  const [descargas, setDescargas] = useState(null);
+
+  // En el visor de artifacts la descarga la media la plataforma; en la PWA local es un enlace normal.
+  useEffect(() => {
+    let vivo = true;
+    (async () => {
+      try{
+        const d = (window.claude && window.claude.use) ? await window.claude.use('downloads') : null;
+        if (vivo) setDescargas(d);
+      }catch(e){ /* sin capacidad de descarga: quedan copiar e imprimir */ }
+    })();
+    return () => { vivo = false; };
+  }, []);
+
+  useEffect(() => {
+    document.body.classList.toggle('doc-open', !!doc);
+    return () => document.body.classList.remove('doc-open');
+  }, [doc]);
+  useEffect(() => {
+    const h = e => { if (e.key === 'Escape') onCerrar(); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [onCerrar]);
+  if (!doc) return null;
+
+  async function descargar(){
+    const html = envolverWord(doc.titulo, doc.html, ESTILOS_DOC);
+    if (descargas){
+      try{
+        await descargas.save({ filename:doc.archivo.replace(/\.doc$/, '.html'), data:html });
+        toast('Descargado. Ábrelo con Word y guárdalo como .docx.', 'verde');
+      }catch(e){
+        if (e && e.code === 'declined') return;
+        toast('No se pudo descargar el archivo; usa Copiar a Word.', 'ambar');
+      }
+      return;
+    }
+    const ok = descargarDoc(doc.archivo, html);
+    toast(ok ? 'Archivo .doc descargado.' : 'La descarga fue bloqueada; usa Copiar a Word.', ok ? 'verde' : 'ambar');
+  }
+
+  const copiar = async () => {
+    const ok = await copiarRico(envolverWord(doc.titulo, doc.html, ESTILOS_DOC), hoja.current ? hoja.current.innerText : '');
+    toast(ok ? 'Copiado. Pega en Word con Ctrl+V y conserva el formato.' : 'El navegador bloqueó el portapapeles; usa Imprimir.', ok ? 'verde' : 'ambar');
+  };
+
+  return (
+    <div className="doc-overlay fixed inset-0 z-50 overflow-y-auto bg-ink/60 px-0 py-0 sm:px-4 sm:py-6">
+      <div className="no-print sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-line bg-paper px-3 py-2.5"
+           style={{ paddingTop:'calc(10px + env(safe-area-inset-top, 0px))' }}>
+        <button onClick={onCerrar} aria-label="Cerrar documento" className="rounded-lg p-1.5 text-ink2 hover:bg-surface2"><Icon n="arrow-left" s={19} /></button>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-display text-[13.5px] font-semibold">{doc.titulo}</p>
+          <p className="text-[11px] text-ink3">Documento generado · listo para firma</p>
+        </div>
+        <Boton icon="copy" variant="linea" onClick={copiar}>Copiar a Word</Boton>
+        <Boton icon="printer" variant="linea" onClick={() => window.print()}>Imprimir / PDF</Boton>
+        {(descargas || !SANDBOX) && (
+          <Boton icon="download" onClick={descargar}>{descargas ? 'Descargar' : 'Descargar .doc'}</Boton>
+        )}
+      </div>
+      <div ref={hoja}
+           className={cx('doc-sheet mx-auto bg-white shadow-pop', doc.esDiapositivas ? 'p-3 sm:p-6' : 'doc p-5 sm:p-10')}
+           style={{ maxWidth:doc.esDiapositivas ? '1100px' : '820px' }}
+           dangerouslySetInnerHTML={{ __html:doc.html }} />
+      <div className="h-10" />
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   14. APLICACIÓN
+   ══════════════════════════════════════════════════════════════════ */
+/* Cuatro destinos y, en el centro, el (+) que abre la captura. */
+const NAV = [
+  ['inicio','Inicio','layout-dashboard'],
+  ['actas','Actas','file-text'],
+  ['entregables','Entregables','presentation'],
+  ['ajustes','Ajustes','settings']
+];
+
+function App(){
+  const [st, setSt] = useState(cargarEstado);
+  const [tab, setTab] = useState('inicio');
+  const [mes, setMes] = useState(mesDe(hoyISO()));
+  const [prefill, setPrefill] = useState(null);
+  const [pedido, setPedido] = useState(null);
+  const [doc, setDoc] = useState(null);
+  const [aviso, setAviso] = useState(null);
+  const [persistido, setPersistido] = useState(true);
+
+  useEffect(() => {
+    const ok = guardarEstado(st);
+    setPersistido(p => p === ok ? p : ok);
+  }, [st]);
+
+  useEffect(() => {
+    const r = document.documentElement;
+    if (st.tema === 'auto') r.removeAttribute('data-theme');
+    else r.setAttribute('data-theme', st.tema);
+  }, [st.tema]);
+
+  const toast = useCallback((texto, tono = 'verde') => {
+    setAviso({ texto, tono, id:Date.now() });
+    setTimeout(() => setAviso(a => (a && a.texto === texto) ? null : a), 4200);
+  }, []);
+
+  const ir = useCallback((destino, carga) => {
+    setTab(destino);
+    if (destino === 'capturar') setPrefill(carga || null);
+    if (destino === 'actas') setPedido(carga || null);
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }, []);
+
+  const ctx = useMemo(() => ({ st, setSt, toast, ir, abrirDoc:setDoc, persistido }), [st, toast, ir, persistido]);
+  const sinDatos = st.config.contratista.startsWith('«');
+  const meses = mesesDisponibles(st.actividades);
+
+  return (
+    <Ctx.Provider value={ctx}>
+      <div className="app-shell mx-auto flex min-h-full w-full max-w-5xl flex-col px-4 pb-32"
+           style={{ paddingTop:'env(safe-area-inset-top, 0px)' }}>
+
+        <header className="sticky z-20 -mx-4 mb-4 border-b border-line bg-paper/90 px-4 py-3 backdrop-blur"
+                style={{ top:'env(safe-area-inset-top, 0px)' }}>
+          <div className="flex items-center gap-3">
+            {window.ESCUDO_MUNICIPAL
+              ? <img src={window.ESCUDO_MUNICIPAL} alt={'Escudo de ' + st.config.municipio}
+                     className="h-10 w-10 flex-none rounded-lg bg-white object-contain p-px" />
+              : <div className="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-azure font-display text-[13px] font-bold text-paper">BT</div>}
+            <div className="min-w-0 flex-1">
+              <h1 className="font-display text-[15.5px] font-bold leading-none">{tab === 'capturar' ? 'Captura rápida' : 'Bitácora Territorial'}</h1>
+              <p className="mt-1 truncate text-[11.5px] text-ink3">{tab === 'capturar' ? 'Graba o fotografía; el resto ya viene puesto' : st.config.municipio + ' · ' + st.config.dependencia}</p>
+            </div>
+            {(tab === 'inicio' || tab === 'entregables') && (
+              <select value={mes} onChange={e => setMes(e.target.value)} aria-label="Período" id="hdr-mes"
+                className="rounded-lg border border-line2 bg-surface px-2.5 py-1.5 font-mono text-[12px] tnum">
+                {meses.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            )}
+          </div>
+        </header>
+
+        {sinDatos && tab !== 'ajustes' && (
+          <button onClick={() => setTab('ajustes')}
+            className="mb-4 flex w-full items-center gap-2.5 rounded-xl border border-fucsia/30 bg-fucsiasoft px-3.5 py-2.5 text-left">
+            <Icon n="user-cog" s={17} className="flex-none text-fucsia" />
+            <span className="flex-1 text-[12.5px] leading-snug text-ink">Completa los datos del contrato para que las actas e informes salgan con tu nombre.</span>
+            <Icon n="chevron-right" s={16} className="flex-none text-fucsia" />
+          </button>
+        )}
+
+        <main className="flex-1 anim-in" key={tab}>
+          {tab === 'inicio' && <Inicio mes={mes} setMes={setMes} />}
+          {tab === 'capturar' && <Capturar prefill={prefill} limpiarPrefill={() => setPrefill(null)} />}
+          {tab === 'actas' && <Actas pedido={pedido} limpiarPedido={() => setPedido(null)} />}
+          {tab === 'entregables' && <Entregables mes={mes} setMes={setMes} />}
+          {tab === 'ajustes' && <Ajustes />}
+        </main>
+
+        <footer className="mt-8 border-t border-line pt-4 text-[11.5px] leading-relaxed text-ink3">
+          {APP.nombre} {APP.version} · captura en campo, entregables con formato oficial.
+          Los registros rotulados como ejemplo son datos de demostración, no gestión real.
+          <span className="mt-1 block">Editor: <strong className="text-ink2">{APP.editor}</strong> · para la Alcaldía Municipal de {st.config.municipio}, {st.config.departamento}.</span>
+        </footer>
+      </div>
+
+      {aviso && (
+        <div className="fixed inset-x-0 z-40 flex justify-center px-4" style={{ bottom:'calc(106px + env(safe-area-inset-bottom, 0px))' }}>
+          <div className={cx('anim-in flex max-w-md items-start gap-2 rounded-xl border px-3.5 py-2.5 shadow-pop',
+            aviso.tono === 'verde' ? 'border-verde/30 bg-verdesoft text-verde' :
+            aviso.tono === 'rojo' ? 'border-rojo/30 bg-rojosoft text-rojo' : 'border-ambar/30 bg-ambarsoft text-ambar')}>
+            <Icon n={aviso.tono === 'verde' ? 'check-circle' : 'alert-circle'} s={16} className="mt-0.5 flex-none" />
+            <span className="text-[13px] font-medium leading-snug">{aviso.texto}</span>
+          </div>
+        </div>
+      )}
+
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper/95 backdrop-blur"
+           style={{ paddingBottom:'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="relative mx-auto flex max-w-5xl">
+          {NAV.map(([k,l,ic], i) => (
+            <React.Fragment key={k}>
+              {i === 2 && <span className="w-[84px] flex-none" aria-hidden="true" />}
+              <button onClick={() => ir(k)} aria-current={tab === k ? 'page' : undefined}
+                className={cx('flex flex-1 flex-col items-center gap-1 py-2.5 transition', tab === k ? 'text-azure' : 'text-ink3 hover:text-ink2')}>
+                <span className={cx('flex h-7 w-12 items-center justify-center rounded-full transition', tab === k ? 'bg-azuresoft' : '')}>
+                  <Icon n={ic} s={19} />
+                </span>
+                <span className="font-display text-[10.5px] font-semibold">{l}</span>
+              </button>
+            </React.Fragment>
+          ))}
+          <button onClick={() => ir(tab === 'capturar' ? 'inicio' : 'capturar')}
+            aria-label={tab === 'capturar' ? 'Cerrar captura' : 'Capturar evidencia'}
+            className={cx('absolute -top-7 left-1/2 flex h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full border-4 border-paper shadow-pop transition active:scale-95',
+              tab === 'capturar' ? 'bg-fucsia text-paper' : 'bg-azure text-paper')}>
+            <Icon n={tab === 'capturar' ? 'x' : 'plus'} s={30} stroke={2.4} />
+          </button>
+        </div>
+      </nav>
+
+      <VisorDocumento doc={doc} onCerrar={() => setDoc(null)} />
+    </Ctx.Provider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
+try{
+  if (location.protocol.startsWith('http') && window.self === window.top && 'serviceWorker' in navigator){
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+}catch(e){}
+</script>

@@ -1,0 +1,257 @@
+<script type="text/babel" data-presets="react">
+/* ══════════════════════════════════════════════════════════════════
+   6. GENERADORES DE ENTREGABLES
+   ══════════════════════════════════════════════════════════════════ */
+function escudoHTML(cfg){
+  const src = (typeof window !== 'undefined' && window.ESCUDO_MUNICIPAL) || '';
+  return src
+    ? '<img class="escudo" src="' + src + '" alt="Escudo del municipio de ' + esc(cfg.municipio) + '">'
+    : '<div class="escudo-alt">ESCUDO<br>MUNICIPAL</div>';
+}
+
+function pieInstitucional(cfg){
+  const l1 = ['Alcaldía Municipal de ' + cfg.municipio + ' — ' + cfg.departamento,
+              cfg.direccion, cfg.codigoPostal ? 'Código postal ' + cfg.codigoPostal : ''].filter(Boolean).join(' · ');
+  const l2 = [cfg.telefono ? 'Conmutador ' + cfg.telefono : '', cfg.correo, cfg.web].filter(Boolean).join(' · ');
+  return '<div class="pie">' + esc(l1) + '<br>' + esc(l2) + '</div>';
+}
+
+function membrete(cfg, titulo, sub){
+  return '<div class="membrete">' + escudoHTML(cfg) + '<div style="flex:1">' +
+    '<div style="font-family:Archivo,sans-serif;font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase">Alcaldía Municipal de ' + esc(cfg.municipio) + '</div>' +
+    (cfg.lema ? '<div style="font-family:Newsreader,serif;font-style:italic;font-size:11px;color:#B32074">«' + esc(cfg.lema) + '»</div>' : '') +
+    '<div style="font-size:12px;color:#33474e">' + esc(cfg.secretaria) + '</div>' +
+    '<div style="font-size:11.5px;color:#5d6f74">' + esc(cfg.dependencia) + ' — ' + esc(cfg.departamento) + '</div>' +
+    '</div></div>' +
+    '<h1>' + esc(titulo) + '</h1>' +
+    (sub ? '<div style="text-align:center;font-family:IBM Plex Mono,monospace;font-size:11px;color:#4a5a60;margin-bottom:8px">' + esc(sub) + '</div>' : '');
+}
+function ctrlDoc(cfg, codigo){
+  return '<div class="ctrl"><span>Código: ' + esc(cfg.codigoFormato) + '</span><span>Versión: 02</span><span>' + esc(codigo) + '</span><span>Generado: ' + fechaLarga(hoyISO()) + '</span></div>';
+}
+function anexoFotografico(evs, desde){
+  const fotos = evs.filter(e => e.tipo === 'foto' && e.dataUrl);
+  const otros = evs.filter(e => e.tipo !== 'foto' || !e.dataUrl);
+  let h = '';
+  if (fotos.length){
+    h += '<div class="anexo-grid">' + fotos.map((e,i) =>
+      '<figure><img src="' + e.dataUrl + '" alt="' + esc(e.nombre) + '"><figcaption><strong>Registro ' + (desde+i) + '.</strong> ' + esc(e.nombre) + (e.descripcion ? ' — ' + esc(e.descripcion) : '') + '</figcaption></figure>'
+    ).join('') + '</div>';
+  }
+  if (otros.length){
+    h += '<p style="font-family:IBM Plex Sans,sans-serif;font-size:12px;margin-top:8px"><strong>Soportes documentales anexos:</strong> ' +
+      otros.map(e => esc(e.nombre) + (e.descripcion ? ' (' + esc(e.descripcion) + ')' : '')).join(' · ') + '.</p>';
+  }
+  if (!h) h = '<p style="color:#7a8a90;font-style:italic">Sin evidencias cargadas para este ítem.</p>';
+  return h;
+}
+
+/* ─────────── 6.1 ACTA DE COMITÉ ─────────── */
+function construirActa(acta, st){
+  const cfg = st.config;
+  const o = obl(acta.obligacionId);
+  const evs = st.evidencias.filter(e => (acta.evidencias || []).includes(e.id));
+  const anio = (acta.fecha || hoyISO()).slice(0,4);
+  const nro = 'ACTA N.º ' + acta.consecutivo + '-' + anio;
+  const asis = acta.asistentes || [];
+  const comp = acta.compromisos || [];
+
+  let h = membrete(cfg, nro, acta.instancia);
+  h += ctrlDoc(cfg, nro);
+
+  h += '<table><tbody>' +
+    '<tr><th style="width:26%">Instancia</th><td>' + esc(acta.instancia) + '</td></tr>' +
+    '<tr><th>Fecha</th><td>' + diaSemana(acta.fecha) + ', ' + fechaLarga(acta.fecha) + '</td></tr>' +
+    '<tr><th>Hora</th><td>Inicio ' + esc(acta.horaInicio) + ' — Finalización ' + esc(acta.horaFin) + '</td></tr>' +
+    '<tr><th>Lugar</th><td>' + esc(acta.lugar) + '</td></tr>' +
+    '<tr><th>Modalidad</th><td>' + esc(acta.modalidad) + '</td></tr>' +
+    '<tr><th>Convoca</th><td>' + esc(acta.convoca) + '</td></tr>' +
+    '<tr><th>Obligación contractual</th><td>N.º ' + o.id + ' — ' + esc(o.corto) + '</td></tr>' +
+    '</tbody></table>';
+
+  h += '<h2>1. Objetivo de la sesión</h2><p>' + esc(acta.objetivo) + '</p>';
+
+  h += '<h2>2. Orden del día</h2><ol>' + (acta.ordenDia || []).map(p => '<li>' + esc(p) + '</li>').join('') + '</ol>';
+
+  h += '<h2>3. Verificación del quórum y asistentes</h2>';
+  h += '<p>Se verificó la asistencia de ' + enLetras(asis.length) + ' (' + asis.length + ') participantes, conforme a la planilla de asistencia que se anexa al presente documento.</p>';
+  h += '<table><thead><tr><th style="width:6%">N.º</th><th>Nombre</th><th>Cargo</th><th>Entidad</th><th style="width:16%">Firma</th></tr></thead><tbody>' +
+    (asis.length ? asis.map((a,i) => '<tr><td>' + (i+1) + '</td><td>' + esc(a.nombre) + '</td><td>' + esc(a.cargo) + '</td><td>' + esc(a.entidad) + '</td><td></td></tr>').join('')
+    : '<tr><td colspan="5" style="color:#7a8a90;font-style:italic">Ver planilla de asistencia anexa.</td></tr>') +
+    '</tbody></table>';
+
+  h += '<h2>4. Desarrollo de la sesión</h2>';
+  (acta.desarrollo || []).forEach(d => {
+    const titulo = (acta.ordenDia || [])[d.punto-1] || ('Punto ' + d.punto);
+    h += '<h3>4.' + d.punto + '. ' + esc(titulo) + '</h3><p>' + esc(d.texto) + '</p>';
+  });
+
+  h += '<h2>5. Compromisos</h2>';
+  h += '<table><thead><tr><th style="width:6%">N.º</th><th>Compromiso</th><th>Responsable</th><th>Entidad</th><th style="width:13%">Fecha límite</th><th style="width:12%">Estado</th></tr></thead><tbody>' +
+    (comp.length ? comp.map((c,i) => '<tr><td>' + (i+1) + '</td><td>' + esc(c.descripcion) + '</td><td>' + esc(c.responsable) + '</td><td>' + esc(c.entidad) + '</td><td>' + (c.fecha ? fechaLarga(c.fecha) : '—') + '</td><td>' + esc(c.estado) + '</td></tr>').join('')
+    : '<tr><td colspan="6" style="color:#7a8a90;font-style:italic">La sesión no generó compromisos.</td></tr>') +
+    '</tbody></table>';
+
+  h += '<h2>6. Conclusiones y cierre</h2><p>' + esc(acta.conclusiones) + '</p>';
+
+  h += '<h2 class="pg-break">7. Anexo fotográfico y documental</h2>' + anexoFotografico(evs, 1);
+
+  h += '<div class="firma"><div>' + esc(acta.elaboradaPor || cfg.contratista) + '<br><span style="color:#4a5a60">Secretaría Técnica — ' + esc(cfg.dependencia) + '</span></div>' +
+    '<div>' + esc(cfg.supervisor) + '<br><span style="color:#4a5a60">' + esc(cfg.cargoSupervisor) + '</span></div></div>';
+  h += pieInstitucional(cfg);
+
+  return { titulo:nro + ' — ' + acta.instancia, archivo:'Acta_' + acta.consecutivo + '_' + anio + '.doc', html:h };
+}
+
+/* ─────────── 6.2 INFORME MENSUAL DE EJECUCIÓN ─────────── */
+function construirInforme(mk, st){
+  const cfg = st.config;
+  const acts = st.actividades.filter(a => mesDe(a.fecha) === mk).sort((a,b) => a.fecha.localeCompare(b.fecha));
+  const actasMes = st.actas.filter(a => mesDe(a.fecha) === mk);
+  const evsDe = a => st.evidencias.filter(e => (a.evidencias || []).includes(e.id));
+  const totalEv = acts.reduce((n,a) => n + (a.evidencias || []).length, 0);
+  const cumplidas = OBLIGACIONES.filter(o => acts.filter(a => a.obligacionId === o.id).length >= o.meta).length;
+
+  let h = membrete(cfg, 'Informe mensual de ejecución contractual', 'Período: ' + mesLargo(mk));
+  h += ctrlDoc(cfg, 'Contrato ' + cfg.contrato);
+
+  h += '<table><tbody>' +
+    '<tr><th style="width:26%">Contratista</th><td>' + esc(cfg.contratista) + ' — ' + esc(cfg.cedula) + '</td></tr>' +
+    '<tr><th>Contrato N.º</th><td>' + esc(cfg.contrato) + '</td></tr>' +
+    '<tr><th>Objeto</th><td>' + esc(cfg.objeto) + '</td></tr>' +
+    '<tr><th>Período reportado</th><td>' + mesLargo(mk) + '</td></tr>' +
+    '<tr><th>Supervisor</th><td>' + esc(cfg.supervisor) + ' — ' + esc(cfg.cargoSupervisor) + '</td></tr>' +
+    '<tr><th>Valor a cobrar</th><td>' + esc(cfg.valorMes) + '</td></tr>' +
+    '</tbody></table>';
+
+  h += '<h2>1. Resumen ejecutivo del período</h2>';
+  h += '<p>Durante el período comprendido en ' + mesLargo(mk) + ' se ejecutaron ' + enLetras(acts.length) + ' (' + acts.length + ') actividades asociadas a las once (11) obligaciones contractuales, se levantaron ' + enLetras(actasMes.length) + ' (' + actasMes.length + ') actas de instancias de participación y se compilaron ' + totalEv + ' soportes de evidencia. ' + cumplidas + ' de 11 obligaciones alcanzaron la meta mensual programada.</p>';
+
+  h += '<table><thead><tr><th style="width:8%">N.º</th><th>Obligación contractual</th><th style="width:14%">Actividades</th><th style="width:12%">Evidencias</th><th style="width:14%">Cumplimiento</th></tr></thead><tbody>';
+  OBLIGACIONES.forEach(o => {
+    const sub = acts.filter(a => a.obligacionId === o.id);
+    const ev = sub.reduce((n,a) => n + (a.evidencias || []).length, 0);
+    const e = estadoSem(sub.length, o.meta);
+    h += '<tr><td style="text-align:center">' + o.id + '</td><td>' + esc(o.corto) + '</td><td style="text-align:center">' + sub.length + ' / ' + o.meta + '</td><td style="text-align:center">' + ev + '</td><td>' + e.p + '% — ' + e.label + '</td></tr>';
+  });
+  h += '</tbody></table>';
+
+  h += '<h2 class="pg-break">2. Desarrollo por obligación contractual</h2>';
+  OBLIGACIONES.forEach(o => {
+    const sub = acts.filter(a => a.obligacionId === o.id);
+    h += '<h3>Obligación N.º ' + o.id + '. ' + esc(o.titulo) + '</h3>';
+    if (!sub.length){
+      h += '<p style="color:#5d6f74;font-style:italic">Durante el período reportado no se registraron actividades asociadas a esta obligación.</p>';
+      return;
+    }
+    h += '<table><thead><tr><th style="width:12%">Fecha</th><th style="width:30%">Actividad</th><th>Descripción de la gestión</th><th style="width:10%">Soportes</th></tr></thead><tbody>';
+    sub.forEach(a => {
+      h += '<tr><td>' + fechaCorta(a.fecha) + '</td><td><strong>' + esc(a.titulo) + '</strong><br><span style="color:#5d6f74">' + esc(a.lugar) + '</span></td><td>' + esc(a.descripcion || a.notaCruda) + '</td><td style="text-align:center">' + (a.evidencias || []).length + '</td></tr>';
+    });
+    h += '</tbody></table>';
+    const evs = sub.flatMap(evsDe);
+    if (evs.length) h += anexoFotografico(evs, 1);
+  });
+
+  h += '<h2 class="pg-break">3. Certificación de cumplimiento</h2>';
+  h += '<p>El suscrito contratista certifica que las actividades relacionadas en el presente informe fueron ejecutadas de manera directa y personal durante ' + mesLargo(mk) + ', en cumplimiento de las obligaciones pactadas en el contrato ' + esc(cfg.contrato) + ', y que los soportes documentales y fotográficos anexos corresponden fielmente a la gestión reportada.</p>';
+  h += '<div class="nota">Este informe se presenta para efectos del trámite de cuenta de cobro correspondiente al período reportado, junto con la planilla de aportes a seguridad social y la certificación bancaria.</div>';
+  h += '<div style="margin-top:14px"><span class="sello">Para trámite de cuenta de cobro</span></div>';
+  h += '<div class="firma"><div>' + esc(cfg.contratista) + '<br><span style="color:#4a5a60">Contratista — ' + esc(cfg.cedula) + '</span></div>' +
+    '<div>' + esc(cfg.supervisor) + '<br><span style="color:#4a5a60">' + esc(cfg.cargoSupervisor) + ' — Supervisor del contrato</span></div></div>';
+  h += pieInstitucional(cfg);
+
+  return { titulo:'Informe de ejecución — ' + mesLargo(mk), archivo:'Informe_' + mk + '.doc', html:h };
+}
+
+/* ─────────── 6.3 DIAPOSITIVAS EJECUTIVAS ─────────── */
+function construirDiapositivas(mk, ids, st){
+  const cfg = st.config;
+  const acts = st.actividades.filter(a => mesDe(a.fecha) === mk);
+  const sel = OBLIGACIONES.filter(o => ids.includes(o.id));
+  const fotosDe = list => st.evidencias.filter(e => e.tipo === 'foto' && e.dataUrl && list.some(a => (a.evidencias || []).includes(e.id)));
+  const totalActs = acts.filter(a => ids.includes(a.obligacionId)).length;
+  const avanceGlobal = sel.length ? Math.round(sel.reduce((s,o) => s + estadoSem(acts.filter(a => a.obligacionId === o.id).length, o.meta).p, 0) / sel.length) : 0;
+
+  const slides = [];
+  slides.push({ t:'portada', titulo:'Avance de gestión territorial', sub:mesLargo(mk).toUpperCase(),
+    linea1:cfg.secretaria, linea2:cfg.dependencia, municipio:cfg.municipio, autor:cfg.contratista,
+    escudo:(typeof window !== 'undefined' && window.ESCUDO_MUNICIPAL) || '' });
+
+  slides.push({ t:'kpi', titulo:'El período en cifras', sub:mesLargo(mk),
+    kpis:[
+      { v:String(totalActs), l:'Actividades ejecutadas' },
+      { v:String(st.actas.filter(a => mesDe(a.fecha) === mk).length), l:'Actas levantadas' },
+      { v:String(fotosDe(acts).length), l:'Registros fotográficos' },
+      { v:avanceGlobal + '%', l:'Avance frente a la meta' }
+    ]});
+
+  slides.push({ t:'semaforo', titulo:'Semáforo de obligaciones', sub:'Cumplimiento frente a la meta mensual',
+    filas: sel.map(o => {
+      const n = acts.filter(a => a.obligacionId === o.id).length;
+      const e = estadoSem(n, o.meta);
+      return { cod:o.cod, nombre:o.corto, n, meta:o.meta, p:e.p, k:e.k, label:e.label };
+    })});
+
+  sel.forEach(o => {
+    const sub = acts.filter(a => a.obligacionId === o.id);
+    const e = estadoSem(sub.length, o.meta);
+    slides.push({ t:'obligacion', cod:o.cod, titulo:o.corto, sub:o.eje, n:sub.length, meta:o.meta, p:e.p, k:e.k,
+      logros: sub.slice(0,4).map(a => ({ fecha:fechaCorta(a.fecha), texto:a.titulo, lugar:a.lugar })),
+      fotos: fotosDe(sub).slice(0,3).map(f => ({ src:f.dataUrl, pie:f.nombre })) });
+  });
+
+  const comps = st.actas.flatMap(a => (a.compromisos || []).map(c => ({ ...c, instancia:a.instancia })));
+  if (comps.length) slides.push({ t:'compromisos', titulo:'Compromisos en seguimiento', sub:'Instancias coordinadas por la dependencia', filas:comps.slice(0,7) });
+
+  slides.push({ t:'cierre', titulo:'Próximos pasos', sub:mesLargo(mk),
+    puntos:[
+      'Sostener la periodicidad de las instancias que alcanzaron la meta del período.',
+      'Priorizar las obligaciones en rojo con cronograma de sesiones para el mes siguiente.',
+      'Cerrar los compromisos vencidos con requerimiento escrito a las entidades responsables.',
+      'Consolidar las evidencias faltantes antes del corte para la cuenta de cobro.'
+    ], autor:cfg.contratista, dependencia:cfg.dependencia });
+
+  return slides;
+}
+
+function diapositivasHTML(slides, st){
+  const P = { verde:'#117A54', ambar:'#B0760C', rojo:'#AB342D' };
+  const wrap = (inner, extra) => '<section class="slide-print" style="width:100%;max-width:1040px;margin:0 auto 26px;aspect-ratio:16/9;background:#fff;border:1px solid #C7D2D6;padding:42px 48px;position:relative;font-family:Arial,Helvetica,sans-serif;color:#141E1C;' + (extra||'') + '">' + inner + '</section>';
+  const pie = s => '<div style="position:absolute;left:48px;right:48px;bottom:20px;display:flex;justify-content:space-between;font-size:11px;color:#7a8a90;border-top:1px solid #DCE3E5;padding-top:8px"><span>' + esc(st.config.dependencia) + '</span><span>' + esc(s) + '</span></div>';
+  const h2 = (t,s) => '<div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#0E5A78;font-weight:700">' + esc(s||'') + '</div><h2 style="font-size:31px;margin:6px 0 20px;font-weight:700">' + esc(t) + '</h2>';
+
+  return slides.map(s => {
+    if (s.t === 'portada') return wrap(
+      '<div style="height:100%;display:flex;flex-direction:column;justify-content:center;border-left:8px solid #0E5A78;padding-left:30px">' +
+      (s.escudo ? '<img src="' + s.escudo + '" alt="" style="width:86px;height:auto;margin-bottom:16px">' : '') +
+      '<div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B32074;font-weight:700">' + esc(s.sub) + '</div>' +
+      '<h1 style="font-size:46px;margin:12px 0;line-height:1.08">' + esc(s.titulo) + '</h1>' +
+      '<div style="font-size:15px;color:#33474e">' + esc(s.linea1) + '<br>' + esc(s.linea2) + '</div>' +
+      '<div style="margin-top:22px;font-size:13px;color:#7a8a90">Alcaldía Municipal de ' + esc(s.municipio) + ' · ' + esc(s.autor) + '</div></div>');
+    if (s.t === 'kpi') return wrap(h2(s.titulo, s.sub) +
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">' + s.kpis.map(k =>
+        '<div style="border:1px solid #C7D2D6;border-top:4px solid #0E5A78;padding:18px 16px"><div style="font-size:40px;font-weight:700;color:#0E5A78">' + esc(k.v) + '</div><div style="font-size:12px;color:#33474e;margin-top:4px">' + esc(k.l) + '</div></div>').join('') + '</div>' + pie('Cifras del período'));
+    if (s.t === 'semaforo') return wrap(h2(s.titulo, s.sub) +
+      '<table style="width:100%;border-collapse:collapse;font-size:13px">' + s.filas.map(f =>
+        '<tr><td style="padding:7px 8px;border-bottom:1px solid #E4EAEB;font-family:Consolas,monospace;color:#7a8a90;width:56px">' + esc(f.cod) + '</td>' +
+        '<td style="padding:7px 8px;border-bottom:1px solid #E4EAEB">' + esc(f.nombre) + '</td>' +
+        '<td style="padding:7px 8px;border-bottom:1px solid #E4EAEB;width:230px"><div style="background:#E9EEEF;height:9px;border-radius:9px"><div style="width:' + f.p + '%;background:' + P[f.k] + ';height:9px;border-radius:9px"></div></div></td>' +
+        '<td style="padding:7px 8px;border-bottom:1px solid #E4EAEB;width:96px;text-align:right;color:' + P[f.k] + ';font-weight:700">' + f.n + ' / ' + f.meta + '</td></tr>').join('') + '</table>' + pie('Semáforo de cumplimiento'));
+    if (s.t === 'obligacion') return wrap(h2(s.titulo, s.cod + ' · ' + s.sub) +
+      '<div style="display:grid;grid-template-columns:1.25fr 1fr;gap:26px">' +
+      '<div><div style="font-size:12px;color:#7a8a90;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Logros del período</div>' +
+      (s.logros.length ? '<ul style="margin:0;padding-left:18px;font-size:14px;line-height:1.5">' + s.logros.map(l => '<li style="margin-bottom:7px"><strong>' + esc(l.fecha) + '</strong> — ' + esc(l.texto) + '</li>').join('') + '</ul>' : '<div style="color:#AB342D;font-size:14px">Sin actividades registradas en el período.</div>') +
+      '<div style="margin-top:18px;display:flex;align-items:baseline;gap:10px"><span style="font-size:36px;font-weight:700;color:' + P[s.k] + '">' + s.p + '%</span><span style="font-size:13px;color:#33474e">' + s.n + ' de ' + s.meta + ' actividades programadas</span></div></div>' +
+      '<div style="display:grid;gap:8px;align-content:start">' + (s.fotos.length ? s.fotos.map(f =>
+        '<figure style="margin:0"><img src="' + f.src + '" style="width:100%;height:96px;object-fit:cover;border:1px solid #C7D2D6"><figcaption style="font-size:10px;color:#7a8a90;padding-top:3px">' + esc(f.pie) + '</figcaption></figure>').join('')
+        : '<div style="border:1px dashed #C7D2D6;padding:22px;text-align:center;color:#7a8a90;font-size:12px">Sin registro fotográfico</div>') + '</div></div>' + pie(s.cod));
+    if (s.t === 'compromisos') return wrap(h2(s.titulo, s.sub) +
+      '<table style="width:100%;border-collapse:collapse;font-size:12.5px"><tr><th style="text-align:left;padding:6px;background:#EAF1F4">Compromiso</th><th style="text-align:left;padding:6px;background:#EAF1F4">Responsable</th><th style="text-align:left;padding:6px;background:#EAF1F4;width:110px">Fecha</th><th style="text-align:left;padding:6px;background:#EAF1F4;width:96px">Estado</th></tr>' +
+      s.filas.map(c => '<tr><td style="padding:6px;border-bottom:1px solid #E4EAEB">' + esc(c.descripcion) + '</td><td style="padding:6px;border-bottom:1px solid #E4EAEB">' + esc(c.entidad) + '</td><td style="padding:6px;border-bottom:1px solid #E4EAEB">' + (c.fecha ? fechaCorta(c.fecha) : '—') + '</td><td style="padding:6px;border-bottom:1px solid #E4EAEB">' + esc(c.estado) + '</td></tr>').join('') + '</table>' + pie('Seguimiento a compromisos'));
+    return wrap(h2(s.titulo, s.sub) +
+      '<ul style="font-size:15px;line-height:1.6;padding-left:18px">' + s.puntos.map(p => '<li style="margin-bottom:9px">' + esc(p) + '</li>').join('') + '</ul>' +
+      '<div style="position:absolute;left:48px;bottom:56px;font-size:13px;color:#33474e">' + esc(s.autor) + ' — ' + esc(s.dependencia) + '</div>' + pie('Cierre'));
+  }).join('');
+}
+</script>

@@ -1,0 +1,22 @@
+{
+  "id": "/bitacora-territorial",
+  "name": "Bitácora Territorial",
+  "short_name": "Bitácora",
+  "description": "Captura de evidencias en campo y generación de actas, diapositivas e informes de ejecución contractual. Editor: Lab-S.",
+  "author": "Lab-S",
+  "publisher": "Lab-S",
+  "version": "1.0.0",
+  "categories": ["productivity", "government", "business"],
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3F4F1",
+  "theme_color": "#0E5A78",
+  "lang": "es-CO",
+  "dir": "ltr",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

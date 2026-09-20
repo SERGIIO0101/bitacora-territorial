@@ -1,0 +1,379 @@
+<script type="text/babel" data-presets="react">
+/* ══════════════════════════════════════════════════════════════════
+   9. PANTALLA · CAPTURA RÁPIDA
+      Voz y cámara primero. Escribir es opcional: la fecha, la hora y la
+      obligación más frecuente vienen puestas, y el resto se elige con
+      tarjetas y chips. Tres toques: (+) → Grabar o Foto → Guardar.
+   ══════════════════════════════════════════════════════════════════ */
+function BotonGigante({ icon, titulo, sub, tono = 'azure', activo, ...p }){
+  const t = activo
+    ? 'border-fucsia bg-fucsia text-paper'
+    : tono === 'fucsia'
+      ? 'border-fucsia/40 bg-fucsiasoft text-fucsia hover:brightness-105'
+      : 'border-azure/40 bg-azuresoft text-azure hover:brightness-105';
+  return (
+    <button {...p} className={cx('flex min-h-[124px] flex-1 flex-col items-center justify-center gap-2 rounded-2xl border-2 px-3 py-4 transition active:scale-[0.98]', t)}>
+      <Icon n={icon} s={34} stroke={1.6} className={activo ? 'rec' : ''} />
+      <span className="font-display text-[15px] font-bold leading-none">{titulo}</span>
+      <span className="text-[11.5px] leading-tight opacity-80">{sub}</span>
+    </button>
+  );
+}
+
+const ChipSel = ({ activo, children, ...p }) => (
+  <button {...p} className={cx('rounded-xl border px-3 py-2.5 text-left font-display text-[13px] font-semibold transition',
+    activo ? 'border-azure bg-azure text-paper' : 'border-line2 bg-surface text-ink2 hover:bg-surface2')}>
+    {children}
+  </button>
+);
+
+function Capturar({ prefill, limpiarPrefill }){
+  const { st, setSt, toast, ir } = useApp();
+
+  const sugerido = useMemo(() => sugerirContexto(st.actividades), [st.actividades]);
+  const nuevoForm = useCallback((base) => ({
+    obligacionId: sugerido.obligacionId,
+    tipo: sugerido.tipo,
+    instancia: sugerido.instancia,
+    lugar: sugerido.lugar,
+    titulo:'', fecha:hoyISO(), hora:new Date().toTimeString().slice(0,5),
+    participantes:0, radicado:'', notaCruda:'', descripcion:'',
+    ...(base || {})
+  }), [sugerido]);
+
+  const [f, setF] = useState(nuevoForm);
+  const [evs, setEvs] = useState([]);
+  const [grabando, setGrabando] = useState(false);
+  const [parcial, setParcial] = useState('');
+  const [cargando, setCargando] = useState(false);
+  const [detalles, setDetalles] = useState(false);
+  const [lugarLibre, setLugarLibre] = useState(false);
+
+  const recRef = useRef(null);
+  const baseRef = useRef('');
+  const fRef = useRef(f); fRef.current = f;
+  const evsRef = useRef(evs); evsRef.current = evs;
+  const fotoRef = useRef(null);
+  const docRef = useRef(null);
+
+  const soportaVoz = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  const up = (k,v) => setF(p => ({ ...p, [k]:v }));
+  const o = obl(f.obligacionId);
+  const espacios = useMemo(() => instanciasFrecuentes(st.actividades, f.obligacionId), [st.actividades, f.obligacionId]);
+  const lugares = useMemo(() => lugaresFrecuentes(st.actividades, f.obligacionId), [st.actividades, f.obligacionId]);
+
+  useEffect(() => {
+    if (!prefill) return;
+    setF(p => ({ ...p, ...prefill }));
+    limpiarPrefill();
+  }, [prefill]);
+
+  useEffect(() => () => { try{ recRef.current && recRef.current.abort(); }catch(e){} }, []);
+
+  function redactarDesde(estado, lista){
+    return redactarInstitucional(estado.notaCruda, {
+      obligacionId:estado.obligacionId, tipo:estado.tipo, fecha:estado.fecha, lugar:estado.lugar,
+      participantes:Number(estado.participantes) || 0, evidencias:(lista || []).length, instancia:estado.instancia
+    });
+  }
+
+  /* ── Voz ─────────────────────────────────────────────────────────
+     continuous:false — el dictado se cierra solo con la pausa, así el
+     tercer toque es Guardar y no «detener». */
+  function alternarVoz(){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR){ setDetalles(true); toast('Este navegador no dicta; escribe la nota en Más detalles.', 'ambar'); return; }
+    if (grabando){ try{ recRef.current && recRef.current.stop(); }catch(e){} return; }
+    try{
+      const r = new SR();
+      r.lang = 'es-CO'; r.continuous = false; r.interimResults = true;
+      baseRef.current = f.notaCruda;
+      r.onresult = e => {
+        let fin = '', prov = '';
+        for (let i = 0; i < e.results.length; i++){
+          const t = e.results[i][0].transcript;
+          if (e.results[i].isFinal) fin += t + ' '; else prov += t;
+        }
+        setParcial(prov);
+        if (fin) setF(p => ({ ...p, notaCruda:(baseRef.current + ' ' + fin).trim() }));
+      };
+      r.onerror = ev => {
+        setGrabando(false); setParcial('');
+        if (ev && ev.error === 'not-allowed') toast('El micrófono está bloqueado para este sitio.', 'rojo');
+        else if (ev && ev.error !== 'aborted' && ev.error !== 'no-speech') toast('No se pudo capturar el audio.', 'rojo');
+      };
+      r.onend = () => {
+        setGrabando(false); setParcial('');
+        setTimeout(() => {
+          const estado = fRef.current;
+          if (!estado.notaCruda.trim()) return;
+          setF(p => ({ ...p, descripcion:redactarDesde(estado, evsRef.current) }));
+          toast('Nota dictada y redactada. Revisa y guarda.', 'verde');
+        }, 60);
+      };
+      recRef.current = r; r.start(); setGrabando(true);
+    }catch(e){ toast('No se pudo iniciar el dictado.', 'rojo'); }
+  }
+
+  /* ── Cámara y adjuntos ───────────────────────────────────────── */
+  async function agregarArchivos(lista, tipo){
+    setCargando(true);
+    const nuevos = [];
+    for (const file of Array.from(lista).slice(0,8)){
+      if (tipo === 'foto' && file.type.startsWith('image/')){
+        const r = await comprimirImagen(file);
+        nuevos.push({ id:uid('ev'), nombre:'Registro fotográfico', descripcion:'', tipo:'foto',
+          dataUrl:r ? r.dataUrl : null, creadoEn:new Date().toISOString() });
+      } else {
+        nuevos.push({ id:uid('ev'), nombre:file.name.slice(0,70), descripcion:Math.round(file.size/1024) + ' KB',
+          tipo:file.type.includes('pdf') ? 'pdf' : 'archivo', dataUrl:null, creadoEn:new Date().toISOString() });
+      }
+    }
+    setEvs(p => [...p, ...nuevos]);
+    setCargando(false);
+    if (nuevos.length) toast(`${nuevos.length} evidencia${nuevos.length === 1 ? '' : 's'} lista${nuevos.length === 1 ? '' : 's'}. Toca Guardar.`, 'verde');
+  }
+
+  function guardar(){
+    if (!f.notaCruda.trim() && !evs.length && !f.titulo.trim()){
+      toast('Graba una nota o toma una foto antes de guardar.', 'ambar');
+      return;
+    }
+    const descripcion = f.descripcion.trim() || redactarDesde(f, evs);
+    const act = {
+      id:uid('act'), obligacionId:Number(f.obligacionId), tipo:f.tipo, instancia:f.instancia,
+      titulo:f.titulo.trim() || (f.instancia ? f.instancia : `${f.tipo} — ${fechaCorta(f.fecha)}`),
+      fecha:f.fecha, hora:f.hora, lugar:f.lugar, participantes:Number(f.participantes) || 0,
+      radicado:f.radicado, notaCruda:f.notaCruda, descripcion,
+      evidencias:evs.map(e => e.id), creadoEn:new Date().toISOString()
+    };
+    setSt(p => ({ ...p,
+      actividades:[act, ...p.actividades],
+      evidencias:[...p.evidencias, ...evs.map(e => ({ ...e, actividadId:act.id }))] }));
+    setF(nuevoForm()); setEvs([]); setDetalles(false); setLugarLibre(false);
+    toast(`Registrado en ${obl(act.obligacionId).cod}. Ya cuenta en el semáforo.`, 'verde');
+    ir('inicio');
+  }
+
+  const listo = !!(f.notaCruda.trim() || evs.length || f.titulo.trim());
+
+  return (
+    <div className="space-y-4">
+      {/* Fecha y hora puestas por la app */}
+      <div className="flex items-center gap-2 rounded-xl border border-line bg-surface2 px-3.5 py-2.5">
+        <Icon n="clock" s={16} className="flex-none text-ink3" />
+        <p className="flex-1 text-[12.5px] leading-snug text-ink2">
+          <strong className="text-ink">{fechaRelativa(f.fecha)}</strong>, {fechaLarga(f.fecha)} · {f.hora}
+        </p>
+        <button onClick={() => setDetalles(true)} className="flex-none font-display text-[12px] font-semibold text-azure">Cambiar</button>
+      </div>
+
+      {/* Los dos botones que importan */}
+      <div className="flex gap-2.5">
+        <BotonGigante icon={grabando ? 'square' : 'mic'} tono="fucsia" activo={grabando}
+          titulo={grabando ? 'Escuchando…' : 'Grabar nota'}
+          sub={grabando ? 'Termina al hacer pausa' : soportaVoz ? 'Dicta y se redacta sola' : 'Escribe en Más detalles'}
+          onClick={alternarVoz} aria-pressed={grabando} />
+        <BotonGigante icon="camera" titulo="Tomar foto" sub={evs.length ? `${evs.length} en esta captura` : 'Acta, asistencia, evento'}
+          onClick={() => fotoRef.current.click()} />
+      </div>
+      <input ref={fotoRef} id="cap-fotos" type="file" accept="image/*" capture="environment" multiple hidden
+             onChange={e => { agregarArchivos(e.target.files, 'foto'); e.target.value = ''; }} />
+      <input ref={docRef} id="cap-docs" type="file" accept=".pdf,.doc,.docx,.xlsx,image/*" multiple hidden
+             onChange={e => { agregarArchivos(e.target.files, 'doc'); e.target.value = ''; }} />
+
+      {(grabando || parcial) && (
+        <div className="rounded-xl border border-fucsia/40 bg-fucsiasoft px-3.5 py-3">
+          <p className="eyebrow text-fucsia">Escuchando</p>
+          <p className="mt-1 text-[13.5px] leading-relaxed text-ink">{f.notaCruda} <span className="text-ink3">{parcial}</span></p>
+        </div>
+      )}
+
+      {cargando && <p className="px-1 text-[12.5px] text-ink3">Comprimiendo fotos…</p>}
+
+      {evs.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth:'thin' }}>
+          {evs.map(e => (
+            <div key={e.id} className="relative h-20 w-20 flex-none overflow-hidden rounded-xl border border-line bg-surface2">
+              {e.dataUrl
+                ? <img src={e.dataUrl} alt={e.nombre} className="h-full w-full object-cover" />
+                : <div className="flex h-full w-full items-center justify-center text-ink3"><Icon n="file-text" s={22} /></div>}
+              <button onClick={() => setEvs(p => p.filter(x => x.id !== e.id))} aria-label="Quitar evidencia"
+                className="absolute right-1 top-1 rounded-full bg-ink/70 p-1 text-paper"><Icon n="x" s={12} /></button>
+            </div>
+          ))}
+          <button onClick={() => docRef.current.click()}
+            className="flex h-20 w-20 flex-none flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-line2 text-ink3 hover:bg-surface2">
+            <Icon n="paperclip" s={18} /><span className="text-[10.5px]">PDF</span>
+          </button>
+        </div>
+      )}
+
+      {f.descripcion && (
+        <div className="rounded-xl border border-verde/30 bg-verdesoft px-3.5 py-3">
+          <div className="flex items-center gap-1.5">
+            <Icon n="check-circle" s={15} className="text-verde" />
+            <p className="eyebrow text-verde">Texto institucional listo</p>
+          </div>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-ink2"
+             style={{ display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
+            {f.descripcion}
+          </p>
+          <button onClick={() => setDetalles(true)} className="mt-1.5 font-display text-[12px] font-semibold text-verde">Ver y ajustar</button>
+        </div>
+      )}
+
+      {/* Obligación: tarjetas, no un desplegable */}
+      <div>
+        <div className="mb-2 px-1">
+          <h3 className="eyebrow text-ink2">¿A qué obligación cuenta?</h3>
+          <p className="mt-0.5 text-[11px] leading-snug text-ink3">Viene marcada la sugerida: {sugerido.razon}.</p>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {OBLIGACIONES.map(x => {
+            const activo = Number(f.obligacionId) === x.id;
+            const esSugerida = sugerido.obligacionId === x.id;
+            return (
+              <button key={x.id} onClick={() => setF(p => ({ ...p, obligacionId:x.id, instancia:'', lugar:p.lugar }))}
+                className={cx('relative flex min-h-[86px] flex-col justify-between rounded-xl border-2 p-2.5 text-left transition active:scale-[0.98]',
+                  activo ? 'border-azure bg-azuresoft' : 'border-line bg-surface hover:bg-surface2')}>
+                {esSugerida && !activo && (
+                  <span className="absolute right-1.5 top-1.5 rounded-full bg-fucsiasoft px-1.5 py-0.5 font-display text-[9px] font-bold uppercase tracking-wide text-fucsia">Sugerida</span>
+                )}
+                <Icon n={x.icon} s={19} className={activo ? 'text-azure' : 'text-ink3'} />
+                <div>
+                  <span className={cx('font-mono text-[10.5px]', activo ? 'text-azure' : 'text-ink3')}>{x.cod}</span>
+                  <p className={cx('font-display text-[12.5px] font-semibold leading-tight', activo ? 'text-azure' : 'text-ink')}>{x.corto}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {espacios.length > 0 && (
+        <div>
+          <h3 className="eyebrow mb-2 px-1 text-ink2">Espacio o instancia</h3>
+          <div className="grid gap-1.5">
+            {espacios.map(v => (
+              <ChipSel key={v} activo={f.instancia === v}
+                onClick={() => setF(p => ({ ...p, instancia:p.instancia === v ? '' : v, titulo:p.titulo || `Sesión de ${v}` }))}>
+                {v}
+              </ChipSel>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <h3 className="eyebrow mb-2 px-1 text-ink2">Tipo de actividad</h3>
+        <div className="flex flex-wrap gap-1.5">
+          {TIPOS.map(t => (
+            <button key={t} onClick={() => up('tipo', t)}
+              className={cx('rounded-full border px-3 py-2 text-[12.5px] font-medium transition',
+                f.tipo === t ? 'border-azure bg-azure text-paper' : 'border-line2 bg-surface text-ink2 hover:bg-surface2')}>
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="eyebrow mb-2 px-1 text-ink2">Lugar</h3>
+        <div className="flex flex-wrap gap-1.5">
+          {lugares.map(l => (
+            <button key={l} onClick={() => { up('lugar', f.lugar === l ? '' : l); setLugarLibre(false); }}
+              className={cx('rounded-full border px-3 py-2 text-[12.5px] font-medium transition',
+                f.lugar === l ? 'border-azure bg-azure text-paper' : 'border-line2 bg-surface text-ink2 hover:bg-surface2')}>
+              {l}
+            </button>
+          ))}
+          <button onClick={() => setLugarLibre(v => !v)}
+            className={cx('rounded-full border px-3 py-2 text-[12.5px] font-medium transition',
+              lugarLibre ? 'border-azure bg-azuresoft text-azure' : 'border-dashed border-line2 bg-surface text-ink3')}>
+            Otro lugar
+          </button>
+        </div>
+        {lugarLibre && (
+          <input className="fld mt-2" id="cap-lugar" value={f.lugar} onChange={e => up('lugar', e.target.value)}
+                 placeholder="Vereda, institución, plataforma…" />
+        )}
+      </div>
+
+      <div>
+        <h3 className="eyebrow mb-2 px-1 text-ink2">Participantes</h3>
+        <div className="flex items-center gap-2">
+          <button onClick={() => up('participantes', Math.max(0, Number(f.participantes) - 1))} aria-label="Menos participantes"
+            className="flex h-11 w-11 flex-none items-center justify-center rounded-xl border border-line2 bg-surface text-ink2"><Icon n="minus" s={18} /></button>
+          <div className="flex h-11 min-w-[64px] flex-none items-center justify-center rounded-xl border border-line2 bg-surface px-3 font-display text-[18px] font-bold tnum">
+            {Number(f.participantes) || 0}
+          </div>
+          <button onClick={() => up('participantes', Number(f.participantes) + 1)} aria-label="Más participantes"
+            className="flex h-11 w-11 flex-none items-center justify-center rounded-xl border border-line2 bg-surface text-ink2"><Icon n="plus" s={18} /></button>
+          <div className="flex flex-1 flex-wrap gap-1.5">
+            {[5,10,15,20,30].map(n => (
+              <button key={n} onClick={() => up('participantes', n)}
+                className={cx('rounded-full border px-3 py-2 font-mono text-[12.5px] tnum transition',
+                  Number(f.participantes) === n ? 'border-azure bg-azure text-paper' : 'border-line2 bg-surface text-ink2')}>
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <button onClick={() => setDetalles(v => !v)}
+        className="flex w-full items-center justify-between rounded-xl border border-line bg-surface px-3.5 py-3 text-left">
+        <span className="font-display text-[13.5px] font-semibold">Más detalles <span className="font-normal text-ink3">— título, radicado, texto</span></span>
+        <Icon n={detalles ? 'chevron-up' : 'chevron-down'} s={18} className="text-ink3" />
+      </button>
+
+      {detalles && (
+        <Card className="space-y-3 p-4 anim-in">
+          <Campo label="Título de la actividad" hint="Si lo dejas vacío, la app usa la instancia o el tipo y la fecha.">
+            <input className="fld" id="cap-titulo" value={f.titulo} onChange={e => up('titulo', e.target.value)} placeholder="Sesión ordinaria del Comité…" />
+          </Campo>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Campo label="Fecha"><input type="date" className="fld" id="cap-fecha" value={f.fecha} onChange={e => up('fecha', e.target.value)} /></Campo>
+            <Campo label="Hora"><input type="time" className="fld" id="cap-hora" value={f.hora} onChange={e => up('hora', e.target.value)} /></Campo>
+          </div>
+          <Campo label="Instancia" hint="Nombre oficial del comité, consejo o mesa.">
+            <input className="fld" id="cap-instancia" value={f.instancia} onChange={e => up('instancia', e.target.value)} placeholder="Comité Municipal de…" />
+          </Campo>
+          <Campo label="Radicado" hint="PQRS, UNP o alerta, cuando aplique.">
+            <input className="fld" id="cap-radicado" value={f.radicado} onChange={e => up('radicado', e.target.value)} placeholder="2026-EE-0000" />
+          </Campo>
+          <Campo label="Nota de campo">
+            <textarea rows={3} className="fld resize-y leading-relaxed" id="cap-nota" value={f.notaCruda} onChange={e => up('notaCruda', e.target.value)}
+              placeholder="reunimos el comité, revisamos el plan y quedamos en que salud manda el informe antes del 30" />
+          </Campo>
+          <Boton icon="wand-2" variant="fucsia" className="w-full"
+            onClick={() => {
+              if (!f.notaCruda.trim()){ toast('Dicta o escribe primero la nota de campo.', 'ambar'); return; }
+              setF(p => ({ ...p, descripcion:redactarDesde(f, evs) }));
+              toast('Nota convertida a redacción institucional.', 'verde');
+            }}>Redactar institucional</Boton>
+          {f.descripcion && (
+            <Campo label="Texto que entra al acta y al informe">
+              <textarea rows={6} className="fld resize-y leading-relaxed" id="cap-desc" value={f.descripcion} onChange={e => up('descripcion', e.target.value)} />
+            </Campo>
+          )}
+        </Card>
+      )}
+
+      {/* Tercer toque, siempre a la vista */}
+      <div className="sticky z-10 -mx-4 border-t border-line bg-paper/95 px-4 py-3 backdrop-blur"
+           style={{ bottom:'calc(72px + env(safe-area-inset-bottom, 0px))' }}>
+        <button onClick={guardar} disabled={!listo}
+          className={cx('flex w-full items-center justify-center gap-2.5 rounded-2xl px-4 py-4 font-display text-[16px] font-bold transition active:scale-[0.99]',
+            listo ? 'bg-azure text-paper' : 'bg-surface2 text-ink3')}>
+          <Icon n="check" s={22} />
+          Guardar en {o.cod}
+          {evs.length > 0 && <span className="rounded-full bg-paper/25 px-2 py-0.5 font-mono text-[12px]">{evs.length}</span>}
+        </button>
+        {!listo && <p className="mt-1.5 text-center text-[11.5px] text-ink3">Graba una nota o toma una foto para habilitar el guardado.</p>}
+      </div>
+    </div>
+  );
+}
+</script>

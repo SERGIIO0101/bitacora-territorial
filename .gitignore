@@ -1,0 +1,12 @@
+# Temporales y del sistema
+Thumbs.db
+desktop.ini
+.DS_Store
+*.log
+
+# Entorno del asistente
+.claude/
+
+# Cache de Python
+__pycache__/
+*.pyc

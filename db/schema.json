@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bitácora Territorial — modelo de datos",
+  "version": "1.0.0",
+  "descripcion": "Modelo lógico de la app. Cuatro entidades de dominio (obligaciones, actividades, evidencias, actas) más las tablas de apoyo que hacen posibles los entregables oficiales: compromisos, asistentes y perfil contractual.",
+  "convenciones": {
+    "id": "uuid v4 generado por la base de datos",
+    "fechas": "date (YYYY-MM-DD) para hechos del territorio; timestamptz para auditoría",
+    "multiusuario": "toda fila de dominio lleva perfil_id; RLS filtra por auth.uid()",
+    "borrado": "lógico mediante archivado_en; nunca se borra evidencia de ejecución contractual"
+  },
+
+  "tablas": {
+    "perfiles": {
+      "descripcion": "Un contrato vigente por referente territorial. Encabeza actas, informes y diapositivas.",
+      "campos": {
+        "id": { "tipo": "uuid", "pk": true, "fk": "auth.users.id" },
+        "nombre_completo": { "tipo": "text", "requerido": true },
+        "documento": { "tipo": "text" },
+        "municipio": { "tipo": "text", "requerido": true },
+        "departamento": { "tipo": "text" },
+        "secretaria": { "tipo": "text" },
+        "dependencia": { "tipo": "text", "ejemplo": "Enlace Territorial de DDHH, Paz y Poblaciones" },
+        "numero_contrato": { "tipo": "text" },
+        "objeto_contrato": { "tipo": "text" },
+        "fecha_inicio": { "tipo": "date" },
+        "fecha_fin": { "tipo": "date" },
+        "valor_mensual": { "tipo": "numeric(14,2)" },
+        "supervisor_nombre": { "tipo": "text" },
+        "supervisor_cargo": { "tipo": "text" },
+        "codigo_formato": { "tipo": "text", "defecto": "FT-GD-02" },
+        "creado_en": { "tipo": "timestamptz", "defecto": "now()" }
+      }
+    },
+
+    "obligaciones": {
+      "descripcion": "Las 11 obligaciones del contrato. Se siembran por perfil para que cada contrato pueda tener su propia matriz y sus propias metas.",
+      "campos": {
+        "id": { "tipo": "uuid", "pk": true },
+        "perfil_id": { "tipo": "uuid", "fk": "perfiles.id", "requerido": true },
+        "numero": { "tipo": "int", "requerido": true, "rango": [1, 11] },
+        "codigo": { "tipo": "text", "ejemplo": "O-03" },
+        "titulo": { "tipo": "text", "requerido": true, "nota": "Texto literal de la obligación en el contrato" },
+        "nombre_corto": { "tipo": "text" },
+        "eje": { "tipo": "text", "valores": ["Políticas públicas", "Paz y reconciliación", "Derechos humanos", "Protección", "Atención a la ciudadanía", "Transversal"] },
+        "meta_mensual": { "tipo": "int", "defecto": 1, "nota": "Denominador del semáforo" },
+        "politicas": { "tipo": "text[]", "ejemplo": ["LGBTI", "Discapacidad", "Afrodescendientes"] },
+        "entregable": { "tipo": "text", "valores": ["acta", "informe"] },
+        "activa": { "tipo": "boolean", "defecto": true }
+      },
+      "unico": ["perfil_id", "numero"]
+    },
+
+    "actividades": {
+      "descripcion": "Unidad de captura en campo. Es la fila que después se clasifica bajo su obligación en el informe mensual.",
+      "campos": {
+        "id": { "tipo": "uuid", "pk": true },
+        "perfil_id": { "tipo": "uuid", "fk": "perfiles.id", "requerido": true },
+        "obligacion_id": { "tipo": "uuid", "fk": "obligaciones.id", "requerido": true },
+        "acta_id": { "tipo": "uuid", "fk": "actas.id", "nulo": true, "nota": "Se llena si la actividad derivó en acta" },
+        "tipo": { "tipo": "text", "valores": ["Comité de política pública", "Consejo Territorial de Paz", "Subcomité de Prevención", "Mesa técnica", "Jornada o evento", "Atención a la ciudadanía", "Trámite institucional", "Visita territorial", "Respuesta a PQRS", "Capacitación", "Seguimiento a compromisos"] },
+        "titulo": { "tipo": "text", "requerido": true },
+        "instancia": { "tipo": "text", "nota": "Nombre oficial del comité, consejo o mesa" },
+        "fecha": { "tipo": "date", "requerido": true },
+        "hora": { "tipo": "time" },
+        "lugar": { "tipo": "text" },
+        "participantes": { "tipo": "int", "defecto": 0 },
+        "radicado": { "tipo": "text", "nota": "Radicado de PQRS, UNP o alerta, cuando aplique" },
+        "nota_cruda": { "tipo": "text", "nota": "Lo que la referente dictó o escribió en campo. Se conserva como insumo y trazabilidad." },
+        "descripcion": { "tipo": "text", "nota": "Redacción institucional generada por la IA y editada por la usuaria" },
+        "transcripcion_audio": { "tipo": "text", "nulo": true },
+        "estado": { "tipo": "text", "valores": ["borrador", "confirmada", "reportada"], "defecto": "borrador" },
+        "reportada_en_informe": { "tipo": "uuid", "fk": "informes.id", "nulo": true },
+        "creado_en": { "tipo": "timestamptz", "defecto": "now()" },
+        "archivado_en": { "tipo": "timestamptz", "nulo": true }
+      },
+      "indices": [["perfil_id", "fecha"], ["obligacion_id", "fecha"]]
+    },
+
+    "evidencias": {
+      "descripcion": "Fotos, planillas de asistencia y soportes. El binario vive en Supabase Storage; aquí queda la referencia y el pie de foto que sale impreso.",
+      "campos": {
+        "id": { "tipo": "uuid", "pk": true },
+        "perfil_id": { "tipo": "uuid", "fk": "perfiles.id", "requerido": true },
+        "actividad_id": { "tipo": "uuid", "fk": "actividades.id", "nulo": true },
+        "acta_id": { "tipo": "uuid", "fk": "actas.id", "nulo": true },
+        "tipo": { "tipo": "text", "valores": ["foto", "pdf", "audio", "archivo"], "requerido": true },
+        "nombre": { "tipo": "text", "requerido": true, "nota": "Encabeza el pie de foto en el anexo" },
+        "descripcion": { "tipo": "text" },
+        "storage_path": { "tipo": "text", "requerido": true, "ejemplo": "evidencias/{perfil_id}/{anio}/{mes}/{uuid}.jpg" },
+        "mime": { "tipo": "text" },
+        "bytes": { "tipo": "bigint" },
+        "ancho": { "tipo": "int" },
+        "alto": { "tipo": "int" },
+        "capturada_en": { "tipo": "timestamptz" },
+        "orden": { "tipo": "int", "defecto": 0, "nota": "Orden en el anexo fotográfico" },
+        "creado_en": { "tipo": "timestamptz", "defecto": "now()" }
+      },
+      "regla": "actividad_id o acta_id debe venir diligenciado (al menos uno)"
+    },
+
+    "actas": {
+      "descripcion": "Acta de comité, consejo o subcomité. El consecutivo es por perfil y año.",
+      "campos": {
+        "id": { "tipo": "uuid", "pk": true },
+        "perfil_id": { "tipo": "uuid", "fk": "perfiles.id", "requerido": true },
+        "obligacion_id": { "tipo": "uuid", "fk": "obligaciones.id", "requerido": true },
+        "consecutivo": { "tipo": "int", "requerido": true },
+        "anio": { "tipo": "int", "requerido": true },
+        "instancia": { "tipo": "text", "requerido": true },
+        "fecha": { "tipo": "date", "requerido": true },
+        "hora_inicio": { "tipo": "time" },
+        "hora_fin": { "tipo": "time" },
+        "lugar": { "tipo": "text" },
+        "modalidad": { "tipo": "text", "valores": ["Presencial", "Virtual", "Mixta"] },
+        "convoca": { "tipo": "text" },
+        "objetivo": { "tipo": "text" },
+        "orden_dia": { "tipo": "jsonb", "forma": "[\"Verificación del quórum\", \"...\"]" },
+        "desarrollo": { "tipo": "jsonb", "forma": "[{ \"punto\": 1, \"texto\": \"...\" }]" },
+        "conclusiones": { "tipo": "text" },
+        "elaborada_por": { "tipo": "text" },
+        "estado": { "tipo": "text", "valores": ["borrador", "aprobada", "firmada"], "defecto": "borrador" },
+        "creado_en": { "tipo": "timestamptz", "defecto": "now()" }
+      },
+      "unico": ["perfil_id", "anio", "consecutivo"]
+    },
+
+    "compromisos": {
+      "descripcion": "Filas de la tabla de compromisos del acta. Alimentan las alertas de vencimiento del panel.",
+      "campos": {
+        "id": { "tipo": "uuid", "pk": true },
+        "acta_id": { "tipo": "uuid", "fk": "actas.id", "requerido": true },
+        "orden": { "tipo": "int", "defecto": 0 },
+        "descripcion": { "tipo": "text", "requerido": true },
+        "responsable": { "tipo": "text" },
+        "entidad": { "tipo": "text" },
+        "fecha_limite": { "tipo": "date" },
+        "estado": { "tipo": "text", "valores": ["Pendiente", "En trámite", "Cumplido"], "defecto": "Pendiente" },
+        "cerrado_en": { "tipo": "timestamptz", "nulo": true },
+        "observacion_cierre": { "tipo": "text" }
+      }
+    },
+
+    "asistentes": {
+      "descripcion": "Listado de asistentes del acta. Se imprime como tabla con columna de firma.",
+      "campos": {
+        "id": { "tipo": "uuid", "pk": true },
+        "acta_id": { "tipo": "uuid", "fk": "actas.id", "requerido": true },
+        "orden": { "tipo": "int", "defecto": 0 },
+        "nombre": { "tipo": "text", "requerido": true },
+        "cargo": { "tipo": "text" },
+        "entidad": { "tipo": "text" },
+        "contacto": { "tipo": "text" },
+        "sector": { "tipo": "text", "valores": ["Institucional", "Sociedad civil", "Organismo de control", "Fuerza pública", "Cooperación", "Otro"] }
+      }
+    },
+
+    "informes": {
+      "descripcion": "Corte mensual congelado. Guarda el HTML generado para que el informe radicado no cambie si después se editan las actividades.",
+      "campos": {
+        "id": { "tipo": "uuid", "pk": true },
+        "perfil_id": { "tipo": "uuid", "fk": "perfiles.id", "requerido": true },
+        "periodo": { "tipo": "text", "requerido": true, "formato": "YYYY-MM" },
+        "tipo": { "tipo": "text", "valores": ["mensual", "diapositivas"], "defecto": "mensual" },
+        "resumen": { "tipo": "jsonb", "forma": "[{ \"obligacion\": 1, \"actividades\": 2, \"evidencias\": 5, \"cumplimiento\": 100 }]" },
+        "html": { "tipo": "text", "nota": "Documento congelado al momento de generar" },
+        "storage_path_pdf": { "tipo": "text", "nulo": true },
+        "estado": { "tipo": "text", "valores": ["generado", "radicado", "pagado"], "defecto": "generado" },
+        "radicado_en": { "tipo": "date", "nulo": true },
+        "creado_en": { "tipo": "timestamptz", "defecto": "now()" }
+      },
+      "unico": ["perfil_id", "periodo", "tipo"]
+    }
+  },
+
+  "vistas": {
+    "v_semaforo_mensual": "Por perfil, período y obligación: actividades contadas, evidencias, porcentaje frente a meta_mensual y estado (verde / ámbar / rojo). Es la consulta que alimenta el panel de control.",
+    "v_compromisos_abiertos": "Compromisos con estado distinto de 'Cumplido' y fecha_limite pasada, con su acta e instancia."
+  }
+}

@@ -1,0 +1,260 @@
+<script type="text/babel" data-presets="react">
+/* ══════════════════════════════════════════════════════════════════
+   4. PERSISTENCIA LOCAL + DATOS DE EJEMPLO
+   ══════════════════════════════════════════════════════════════════ */
+const LS_KEY = 'bitacora-territorial.v1';
+const SANDBOX = (() => { try { return window.self !== window.top; } catch(e){ return true; } })();
+
+const CONFIG_INICIAL = {
+  municipio:'Simití',
+  departamento:'Bolívar',
+  lema:'Tierra encantadora y bella',
+  direccion:'Calle 12 # 5-31 — Palacio Municipal',
+  codigoPostal:'135020',
+  telefono:'(+57) 318 354 0171',
+  correo:'alcaldia@simiti-bolivar.gov.co',
+  web:'www.simiti-bolivar.gov.co',
+  secretaria:'Secretaría General',
+  dependencia:'Enlace Territorial de Derechos Humanos, Paz y Poblaciones',
+  contratista:'«Nombre del contratista»',
+  cedula:'«C.C. N.º»',
+  contrato:'CPS-000-2026',
+  objeto:'Prestación de servicios profesionales para el acompañamiento territorial de las políticas públicas poblacionales, la coordinación de las instancias de paz y derechos humanos, y la atención a la población en situación de riesgo del municipio de Simití, Bolívar.',
+  supervisor:'«Nombre del supervisor»',
+  cargoSupervisor:'Secretario de Gobierno y Convivencia Ciudadana',
+  valorMes:'«$ 0.000.000»',
+  codigoFormato:'FT-GD-02'
+};
+
+function seed(){
+  const ev = [];
+  const mkEv = (actividadId, titulo, sub, tipo, tono) => {
+    const e = { id:uid('ev'), actividadId, nombre:titulo, descripcion:sub, tipo, dataUrl: tipo === 'foto' ? evidenciaDemo(titulo, sub, tono) : null, creadoEn:new Date().toISOString(), demo:true };
+    ev.push(e); return e.id;
+  };
+  const A = [];
+  const add = (o) => { const a = { id:uid('act'), evidencias:[], participantes:0, demo:true, ...o }; A.push(a); return a; };
+
+  let a;
+  a = add({ obligacionId:1, fecha:'2026-09-03', hora:'08:30', tipo:'Comité de política pública',
+    instancia:'Comité Municipal de Política Pública LGBTI',
+    titulo:'Sesión ordinaria del Comité de Política Pública LGBTI',
+    lugar:'Salón de Juntas — Alcaldía Municipal', participantes:17,
+    notaCruda:'reunimos el comité lgtbi, revisamos el plan de accion 2026 y quedamos en que salud manda el informe de atencion diferencial antes del 30',
+    descripcion:'' });
+  a.evidencias = [ mkEv(a.id,'Registro fotográfico','Instalación de la sesión','foto','f'), mkEv(a.id,'Planilla de asistencia','17 asistentes — firmas','foto','a'), mkEv(a.id,'Plan de acción 2026','PDF · 14 páginas','pdf','a') ];
+
+  a = add({ obligacionId:3, fecha:'2026-09-08', hora:'09:00', tipo:'Consejo Territorial de Paz',
+    instancia:'Consejo Territorial de Paz, Reconciliación y Convivencia',
+    titulo:'Cuarta sesión del Consejo Territorial de Paz',
+    lugar:'Casa de la Cultura', participantes:24,
+    notaCruda:'sesion del ctp, se presento el avance del plan de accion y la gente pidio priorizar la ruta de reincorporacion, acordamos mesa tecnica el proximo mes',
+    descripcion:'' });
+  a.evidencias = [ mkEv(a.id,'Registro fotográfico','Intervención de consejeros','foto','a'), mkEv(a.id,'Planilla de asistencia','24 asistentes','foto','f') ];
+
+  a = add({ obligacionId:5, fecha:'2026-09-10', hora:'14:00', tipo:'Subcomité de Prevención',
+    instancia:'Subcomité de Prevención, Protección y Garantías de No Repetición',
+    titulo:'Sesión del Subcomité de Prevención, Protección y GNR',
+    lugar:'Sala de crisis — Secretaría de Gobierno', participantes:12,
+    notaCruda:'subcomite de prevencion, revisamos los casos de riesgo de 3 lideres y quedamos en activar ruta unp para dos de ellos',
+    descripcion:'' });
+  a.evidencias = [ mkEv(a.id,'Registro fotográfico','Desarrollo de la sesión','foto','a') ];
+
+  a = add({ obligacionId:4, fecha:'2026-09-11', hora:'10:00', tipo:'Seguimiento a compromisos',
+    instancia:'Alerta Temprana 012-2026 — Defensoría del Pueblo',
+    titulo:'Seguimiento a recomendaciones de la Alerta Temprana 012-2026',
+    lugar:'Secretaría de Gobierno', participantes:9,
+    notaCruda:'revisamos la matriz de la alerta 012, van 6 de 11 recomendaciones, falta que policia mande el reporte de patrullajes',
+    descripcion:'' });
+  a.evidencias = [ mkEv(a.id,'Matriz de seguimiento AT 012-2026','Formato Defensoría','pdf','a') ];
+
+  a = add({ obligacionId:7, fecha:'2026-09-04', hora:'07:30', tipo:'Atención a la ciudadanía',
+    titulo:'Atención y orientación a población migrante',
+    lugar:'Ventanilla única — Alcaldía Municipal', participantes:6,
+    notaCruda:'atendi 6 familias venezolanas, las oriente x el tema de regularizacion y las remiti a salud y al icbf',
+    descripcion:'' });
+  a.evidencias = [ mkEv(a.id,'Registro de atención','Formato de orientación','foto','a') ];
+
+  a = add({ obligacionId:7, fecha:'2026-09-14', hora:'08:00', tipo:'Atención a la ciudadanía',
+    titulo:'Jornada de orientación a población migrante — Comuna 3',
+    lugar:'Centro de Desarrollo Comunitario — Comuna 3', participantes:31,
+    notaCruda:'jornada con 31 pers migrantes, explicamos rutas de salud educacion y trabajo, vino migracion colombia',
+    descripcion:'' });
+  a.evidencias = [ mkEv(a.id,'Registro fotográfico','Jornada en territorio','foto','f'), mkEv(a.id,'Planilla de asistencia','31 asistentes','foto','a') ];
+
+  a = add({ obligacionId:8, fecha:'2026-09-09', hora:'11:00', tipo:'Trámite institucional',
+    titulo:'Radicación de solicitud de medidas de protección ante la UNP',
+    lugar:'Plataforma UNP — trámite virtual', participantes:2,
+    notaCruda:'mandé a la unp la solicitud de 2 lideres sociales con el formato de riesgo y los soportes, radicado UNP-2026-4471',
+    descripcion:'', radicado:'UNP-2026-4471' });
+  a.evidencias = [ mkEv(a.id,'Acuse de radicación UNP','UNP-2026-4471','pdf','a') ];
+
+  a = add({ obligacionId:9, fecha:'2026-09-12', hora:'16:20', tipo:'Trámite institucional',
+    titulo:'Activación de ruta de protección por riesgo extraordinario',
+    lugar:'Secretaría de Gobierno', participantes:1,
+    notaCruda:'activé ruta de proteccion x amenaza a una lideresa, llamé a policia y personeria y quedamos en revision del caso en 48 horas',
+    descripcion:'' });
+
+  a = add({ obligacionId:10, fecha:'2026-09-05', hora:'15:00', tipo:'Respuesta a PQRS',
+    titulo:'Respuesta a PQRS — radicado 2026-EE-0891',
+    lugar:'Secretaría de Gobierno', participantes:0,
+    notaCruda:'proyecte la respuesta del radicado 0891 sobre la falta de alumbrado en el barrio, la mandé a la secretaria de infraestructura',
+    descripcion:'', radicado:'2026-EE-0891' });
+
+  a = add({ obligacionId:10, fecha:'2026-09-15', hora:'09:40', tipo:'Respuesta a PQRS',
+    titulo:'Respuesta a PQRS — radicado 2026-EE-0907',
+    lugar:'Secretaría de Gobierno', participantes:0,
+    notaCruda:'conteste el radicado 0907 de la junta de accion comunal x el tema de convivencia, se remitio a la inspeccion',
+    descripcion:'', radicado:'2026-EE-0907' });
+
+  a = add({ obligacionId:2, fecha:'2026-09-02', hora:'14:30', tipo:'Mesa técnica',
+    instancia:'Mesa técnica de Política Pública de Mujer y Equidad de Género',
+    titulo:'Mesa técnica de seguimiento a metas — Mujer y MIAFF',
+    lugar:'Secretaría de Desarrollo Social', participantes:11,
+    notaCruda:'mesa tecnica con mujer y miaff, revisamos el cumplimiento de metas del plan de desarrollo, van bien las de prevencion de violencias',
+    descripcion:'' });
+  a.evidencias = [ mkEv(a.id,'Registro fotográfico','Mesa técnica','foto','f') ];
+
+  a = add({ obligacionId:1, fecha:'2026-09-15', hora:'08:00', tipo:'Comité de política pública',
+    instancia:'Comité Municipal de Discapacidad',
+    titulo:'Sesión ordinaria del Comité Municipal de Discapacidad',
+    lugar:'Salón de Juntas — Alcaldía Municipal', participantes:19,
+    notaCruda:'comite de discapacidad, presentamos el avance de la caracterizacion y la gente reclamó x el transporte adaptado',
+    descripcion:'' });
+  a.evidencias = [ mkEv(a.id,'Registro fotográfico','Sesión del comité','foto','a'), mkEv(a.id,'Planilla de asistencia','19 asistentes','foto','a') ];
+
+  a = add({ obligacionId:11, fecha:'2026-09-07', hora:'10:00', tipo:'Capacitación',
+    titulo:'Capacitación en enfoque diferencial a funcionarios de la Secretaría',
+    lugar:'Auditorio municipal', participantes:22,
+    notaCruda:'capacite a 22 funcionarios en enfoque diferencial y rutas de atencion, quedaron de aplicar el formato nuevo',
+    descripcion:'' });
+
+  A.forEach(x => {
+    x.descripcion = redactarInstitucional(x.notaCruda, {
+      obligacionId:x.obligacionId, tipo:x.tipo, fecha:x.fecha, lugar:x.lugar,
+      participantes:x.participantes, evidencias:(x.evidencias||[]).length, instancia:x.instancia
+    });
+  });
+
+  const actas = [{
+    id:uid('acta'), demo:true, consecutivo:'004', obligacionId:3,
+    instancia:'Consejo Territorial de Paz, Reconciliación y Convivencia',
+    fecha:'2026-09-08', horaInicio:'09:00', horaFin:'11:40',
+    lugar:'Casa de la Cultura — Salón principal', modalidad:'Presencial',
+    convoca:'Secretaría de Gobierno y Convivencia Ciudadana',
+    objetivo:'Presentar el avance del plan de acción 2026 del Consejo Territorial de Paz y definir la priorización de la ruta de reincorporación en el municipio.',
+    ordenDia:[
+      'Verificación del quórum e instalación de la sesión',
+      'Lectura y aprobación del orden del día',
+      'Seguimiento a compromisos de la sesión anterior',
+      'Presentación del avance del plan de acción 2026',
+      'Priorización de la ruta de reincorporación',
+      'Proposiciones y varios'
+    ],
+    desarrollo:[
+      { punto:1, texto:'Siendo las 09:00 horas se verificó el quórum deliberatorio y decisorio con la asistencia de veinticuatro (24) consejeros y delegados institucionales, procediéndose a la instalación de la sesión por parte de la Secretaría Técnica.' },
+      { punto:2, texto:'Se dio lectura al orden del día propuesto, el cual fue aprobado por unanimidad sin modificaciones ni adiciones por parte de los asistentes.' },
+      { punto:3, texto:'La Secretaría Técnica presentó la matriz de seguimiento a los compromisos adquiridos en la sesión anterior, reportando el cumplimiento de cuatro (4) de los seis (6) compromisos registrados. Los dos (2) compromisos pendientes corresponden a la entrega del reporte de patrullajes y a la designación del delegado del sector educativo.' },
+      { punto:4, texto:'Se presentó el avance del plan de acción 2026, el cual registra un cumplimiento del sesenta y dos por ciento (62%) de las actividades programadas al corte del mes de agosto. Se destacó el avance en las líneas de convivencia y prevención de la conflictividad social.' },
+      { punto:5, texto:'Los consejeros manifestaron la necesidad de priorizar la ruta de atención a población en proceso de reincorporación. Se acordó la conformación de una mesa técnica con participación de la Agencia para la Reincorporación y la Normalización, la Personería Municipal y la Secretaría de Desarrollo Social.' },
+      { punto:6, texto:'No se presentaron proposiciones adicionales. Se fijó la próxima sesión ordinaria para el mes de octubre de 2026.' }
+    ],
+    compromisos:[
+      { id:uid('c'), descripcion:'Remitir el reporte consolidado de patrullajes y acciones preventivas del tercer trimestre.', responsable:'Comandante de Estación', entidad:'Policía Nacional', fecha:'2026-09-30', estado:'Pendiente' },
+      { id:uid('c'), descripcion:'Convocar y realizar la primera sesión de la mesa técnica de reincorporación.', responsable:'Secretaría Técnica', entidad:'Secretaría de Gobierno', fecha:'2026-10-15', estado:'En trámite' },
+      { id:uid('c'), descripcion:'Designar formalmente el delegado del sector educativo ante el Consejo.', responsable:'Director de Núcleo', entidad:'Secretaría de Educación', fecha:'2026-09-12', estado:'Pendiente' }
+    ],
+    asistentes:[
+      { id:uid('as'), nombre:'«Delegado/a»', cargo:'Secretario de Gobierno', entidad:'Alcaldía Municipal', contacto:'' },
+      { id:uid('as'), nombre:'«Delegado/a»', cargo:'Personero Municipal', entidad:'Personería Municipal', contacto:'' },
+      { id:uid('as'), nombre:'«Delegado/a»', cargo:'Comandante de Estación', entidad:'Policía Nacional', contacto:'' },
+      { id:uid('as'), nombre:'«Delegado/a»', cargo:'Representante de víctimas', entidad:'Mesa Municipal de Víctimas', contacto:'' },
+      { id:uid('as'), nombre:'«Delegado/a»', cargo:'Representante juvenil', entidad:'Plataforma Municipal de Juventud', contacto:'' }
+    ],
+    conclusiones:'La sesión se desarrolló con normalidad y en el marco del reglamento interno del Consejo. Se levanta la sesión siendo las 11:40 horas.',
+    evidencias:[], elaboradaPor:'', creadaEn:'2026-09-08'
+  }];
+  const evsActa = A.filter(x => x.fecha === '2026-09-08').flatMap(x => x.evidencias);
+  actas[0].evidencias = evsActa;
+
+  return { actividades:A, evidencias:ev, actas, config:CONFIG_INICIAL, tema:'auto' };
+}
+
+function cargarEstado(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw){
+      const p = JSON.parse(raw);
+      if (p && Array.isArray(p.actividades)){
+        const config = { ...CONFIG_INICIAL, ...(p.config || {}) };
+        // Migración: las versiones previas guardaban el municipio como marcador.
+        if (String(config.municipio || '').indexOf('«') === 0){
+          config.municipio = CONFIG_INICIAL.municipio;
+          config.departamento = CONFIG_INICIAL.departamento;
+          // Solo se pisa la secretaría si nunca se tocó: el valor editado manda.
+          if (config.secretaria === 'Secretaría de Gobierno y Convivencia Ciudadana')
+            config.secretaria = CONFIG_INICIAL.secretaria;
+        }
+        return { ...seed(), ...p, config };
+      }
+    }
+  }catch(e){ /* almacenamiento bloqueado: se trabaja en memoria */ }
+  return seed();
+}
+function guardarEstado(st){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(st)); return true; }
+  catch(e){
+    try{
+      const liviano = { ...st, evidencias: st.evidencias.map(x => ({ ...x, dataUrl: x.dataUrl && x.dataUrl.length > 4000 ? null : x.dataUrl })) };
+      localStorage.setItem(LS_KEY, JSON.stringify(liviano));
+    }catch(e2){ /* sin persistencia: la sesión sigue funcionando en memoria */ }
+    return false;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   5. SALIDA: copiar a Word, imprimir, descargar
+   ══════════════════════════════════════════════════════════════════ */
+function envolverWord(titulo, cuerpo, estilos){
+  return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+    '<head><meta charset="utf-8"><title>' + esc(titulo) + '</title>' +
+    '<xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml>' +
+    '<style>@page{size:21cm 29.7cm;margin:2cm 1.8cm}body{font-family:Georgia,serif;font-size:11pt;color:#111}' + estilos + '</style></head>' +
+    '<body>' + cuerpo + '</body></html>';
+}
+const ESTILOS_DOC = 'h1{font-size:13pt;text-transform:uppercase;text-align:center;font-family:Arial,sans-serif}h2{font-size:11pt;text-transform:uppercase;color:#0E5A78;border-bottom:1.5px solid #0E5A78;font-family:Arial,sans-serif;padding-bottom:3pt;margin-top:16pt}h3{font-size:10.5pt;font-family:Arial,sans-serif}p{text-align:justify;margin:0 0 6pt}table{width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:9pt;margin:6pt 0 10pt}th{background:#EAF1F4;border:1px solid #9FB4BD;padding:4pt;text-align:left;font-size:8.5pt;text-transform:uppercase}td{border:1px solid #B9C6CB;padding:4pt;vertical-align:top}.membrete{border-bottom:2pt solid #0E5A78;padding-bottom:6pt}.ctrl{font-family:Consolas,monospace;font-size:7.5pt;color:#4a5a60;border-bottom:1px solid #C7D2D6;padding-bottom:4pt;margin-bottom:10pt}.anexo-grid{width:100%}.anexo-grid img{width:250px;height:auto}.anexo-grid figcaption{font-family:Arial,sans-serif;font-size:8pt;color:#4a5a60}.firma div{border-top:1px solid #111;padding-top:4pt;font-family:Arial,sans-serif;font-size:8.5pt;width:45%;display:inline-block;margin-right:16pt}.nota{background:#F3F7F8;border-left:3pt solid #0E5A78;padding:6pt;font-family:Arial,sans-serif;font-size:9pt}.sello{border:1.5pt solid #B32074;color:#B32074;padding:5pt;font-family:Arial,sans-serif;font-size:8.5pt;text-transform:uppercase}.escudo{width:64px;height:auto}.escudo-alt{display:none}.pie{border-top:1px solid #C7D2D6;padding-top:6pt;margin-top:16pt;font-family:Arial,sans-serif;font-size:7.5pt;color:#5d6f74;text-align:center}';
+
+async function copiarRico(html, textoPlano){
+  try{
+    if (navigator.clipboard && window.ClipboardItem){
+      await navigator.clipboard.write([ new ClipboardItem({
+        'text/html': new Blob([html], { type:'text/html' }),
+        'text/plain': new Blob([textoPlano || html.replace(/<[^>]+>/g,' ')], { type:'text/plain' })
+      })]);
+      return true;
+    }
+  }catch(e){ /* se intenta la vía clásica */ }
+  try{
+    const d = document.createElement('div');
+    d.contentEditable = 'true';
+    d.style.cssText = 'position:fixed;left:-99999px;top:0;white-space:pre-wrap';
+    d.innerHTML = html;
+    document.body.appendChild(d);
+    const r = document.createRange(); r.selectNodeContents(d);
+    const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    const ok = document.execCommand('copy');
+    s.removeAllRanges(); document.body.removeChild(d);
+    return ok;
+  }catch(e){ return false; }
+}
+function descargarDoc(nombre, html){
+  try{
+    const blob = new Blob(['﻿', html], { type:'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nombre; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1500);
+    return true;
+  }catch(e){ return false; }
+}
+</script>

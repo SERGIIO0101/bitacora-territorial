@@ -1,0 +1,2516 @@
+<title>Bitácora Territorial</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap">
+
+<style>
+  :root{
+    --paper:243 244 241; --surface:255 255 255; --surface-2:236 238 234; --surface-3:227 231 226;
+    --ink:20 30 28; --ink-2:74 87 84; --ink-3:124 136 132;
+    --line:213 219 212; --line-2:196 204 195;
+    --azure:14 90 120; --azure-soft:224 238 243;
+    --fucsia:179 32 116; --fucsia-soft:250 230 242;
+    --verde:17 122 84; --verde-soft:222 241 232;
+    --ambar:176 118 12; --ambar-soft:250 238 213;
+    --rojo:171 52 45; --rojo-soft:250 229 226;
+    --shadow:16 26 24;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:13 17 17; --surface:22 28 28; --surface-2:31 39 38; --surface-3:41 51 50;
+      --ink:231 236 233; --ink-2:165 177 173; --ink-3:126 139 135;
+      --line:46 57 56; --line-2:62 76 74;
+      --azure:108 188 220; --azure-soft:16 44 57;
+      --fucsia:240 141 198; --fucsia-soft:57 19 43;
+      --verde:75 200 148; --verde-soft:15 48 37;
+      --ambar:231 177 62; --ambar-soft:53 40 12;
+      --rojo:241 133 122; --rojo-soft:58 24 21;
+      --shadow:0 0 0;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:13 17 17; --surface:22 28 28; --surface-2:31 39 38; --surface-3:41 51 50;
+    --ink:231 236 233; --ink-2:165 177 173; --ink-3:126 139 135;
+    --line:46 57 56; --line-2:62 76 74;
+    --azure:108 188 220; --azure-soft:16 44 57;
+    --fucsia:240 141 198; --fucsia-soft:57 19 43;
+    --verde:75 200 148; --verde-soft:15 48 37;
+    --ambar:231 177 62; --ambar-soft:53 40 12;
+    --rojo:241 133 122; --rojo-soft:58 24 21;
+    --shadow:0 0 0;
+  }
+
+  html,body{height:100%}
+  body{
+    margin:0; background:rgb(var(--paper)); color:rgb(var(--ink));
+    font-family:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  *{box-sizing:border-box}
+  .font-display{font-family:'Archivo','Segoe UI',system-ui,sans-serif}
+  .tnum{font-variant-numeric:tabular-nums}
+  .eyebrow{font-family:'Archivo',system-ui,sans-serif;text-transform:uppercase;letter-spacing:.09em;font-weight:600;font-size:11px;line-height:1.2}
+  h1,h2,h3{text-wrap:balance;margin:0}
+  button{font:inherit;color:inherit}
+  input,select,textarea{font:inherit;color:inherit}
+  :where(button,a,input,select,textarea,[tabindex]):focus-visible{outline:2px solid rgb(var(--azure));outline-offset:2px;border-radius:6px}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:rgb(var(--line-2));border-radius:99px;border:3px solid rgb(var(--paper))}
+
+  .fld{width:100%;background:rgb(var(--surface));border:1px solid rgb(var(--line-2));border-radius:10px;padding:10px 12px;font-size:15px}
+  .fld::placeholder{color:rgb(var(--ink-3))}
+  .fld:focus{outline:none;border-color:rgb(var(--azure));box-shadow:0 0 0 3px rgba(14,90,120,.18)}
+  select.fld{appearance:none;background-image:linear-gradient(45deg,transparent 50%,rgb(var(--ink-2)) 50%),linear-gradient(135deg,rgb(var(--ink-2)) 50%,transparent 50%);background-position:calc(100% - 18px) 19px,calc(100% - 13px) 19px;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:36px}
+
+  .rail{position:relative}
+  .rail::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:99px;background:var(--rail,rgb(var(--line-2)))}
+
+  @keyframes bt-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .anim-in{animation:bt-in .22s ease-out both}
+  @keyframes pulse-rec{0%,100%{opacity:1}50%{opacity:.35}}
+  .rec{animation:pulse-rec 1.1s ease-in-out infinite}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+  /* Hoja de documento: papel blanco siempre, porque se imprime */
+  .doc{background:#fff;color:#111418;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-size:15px;line-height:1.55}
+  .doc *{box-sizing:border-box}
+  .doc h1,.doc h2,.doc h3,.doc th{font-family:'Archivo','Segoe UI',sans-serif}
+  .doc h1{font-size:17px;letter-spacing:.04em;text-transform:uppercase;text-align:center;font-weight:700;margin:0 0 4px}
+  .doc h2{font-size:13.5px;letter-spacing:.06em;text-transform:uppercase;margin:22px 0 8px;font-weight:700;color:#0E5A78;border-bottom:1.5px solid #0E5A78;padding-bottom:4px}
+  .doc h3{font-size:13px;margin:14px 0 4px;font-weight:600}
+  .doc p{margin:0 0 9px;text-align:justify}
+  .doc table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:12.5px;font-family:'IBM Plex Sans',sans-serif}
+  .doc th{background:#EAF1F4;border:1px solid #9FB4BD;padding:6px 7px;text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase}
+  .doc td{border:1px solid #B9C6CB;padding:6px 7px;vertical-align:top}
+  .doc .membrete{display:flex;gap:12px;align-items:center;border-bottom:2.5px solid #0E5A78;padding-bottom:10px;margin-bottom:6px}
+  .doc .escudo{width:64px;height:auto;flex:none;display:block}
+  .doc .escudo-alt{width:52px;height:60px;flex:none;border:1.5px solid #0E5A78;border-radius:4px 4px 26px 26px;display:flex;align-items:center;justify-content:center;font-family:'Archivo',sans-serif;font-weight:700;font-size:9px;color:#0E5A78;text-align:center;line-height:1.1;padding:4px}
+  .doc .pie{margin-top:26px;border-top:1px solid #C7D2D6;padding-top:8px;font-family:'IBM Plex Sans',sans-serif;font-size:9.5px;line-height:1.45;color:#5d6f74;text-align:center}
+  .doc .ctrl{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#4a5a60;border-bottom:1px solid #C7D2D6;padding-bottom:6px;margin-bottom:16px;flex-wrap:wrap;gap:6px}
+  .doc ol,.doc ul{margin:0 0 10px;padding-left:22px}
+  .doc li{margin-bottom:4px}
+  .doc .firma{margin-top:34px;display:flex;gap:26px;flex-wrap:wrap}
+  .doc .firma div{flex:1 1 210px;border-top:1px solid #111;padding-top:5px;font-size:11.5px;font-family:'IBM Plex Sans',sans-serif}
+  .doc .anexo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .doc .anexo-grid figure{margin:0;border:1px solid #C7D2D6;padding:6px;break-inside:avoid}
+  .doc .anexo-grid img{width:100%;height:150px;object-fit:cover;display:block;background:#EEF1F2}
+  .doc .anexo-grid figcaption{font-family:'IBM Plex Sans',sans-serif;font-size:10.5px;color:#4a5a60;padding-top:5px;line-height:1.35}
+  .doc .nota{background:#F3F7F8;border-left:3px solid #0E5A78;padding:9px 12px;font-size:12.5px;font-family:'IBM Plex Sans',sans-serif;margin:10px 0}
+  .doc .sello{border:2px solid #B32074;color:#B32074;border-radius:6px;padding:8px 12px;font-family:'Archivo',sans-serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase;display:inline-block;transform:rotate(-2deg)}
+
+  @media print{
+    body.doc-open .app-shell{display:none!important}
+    body.doc-open .doc-overlay{position:static!important;overflow:visible!important;background:#fff!important;padding:0!important}
+    body.doc-open .doc-sheet{box-shadow:none!important;border:0!important;margin:0!important;max-width:none!important;padding:0!important;border-radius:0!important}
+    .no-print{display:none!important}
+    .pg-break{break-before:page;page-break-before:always}
+    @page{margin:2cm 1.8cm}
+  }
+</style>
+
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script>
+  var A = '/ ' + '<alpha-value>' + ')';
+  function c(v){ return 'rgb(var(--' + v + ') ' + A; }
+  tailwind.config = {
+    corePlugins:{preflight:false},
+    theme:{
+      extend:{
+        colors:{
+          paper:c('paper'), surface:c('surface'), surface2:c('surface-2'), surface3:c('surface-3'),
+          ink:c('ink'), ink2:c('ink-2'), ink3:c('ink-3'),
+          line:c('line'), line2:c('line-2'),
+          azure:c('azure'), azuresoft:c('azure-soft'),
+          fucsia:c('fucsia'), fucsiasoft:c('fucsia-soft'),
+          verde:c('verde'), verdesoft:c('verde-soft'),
+          ambar:c('ambar'), ambarsoft:c('ambar-soft'),
+          rojo:c('rojo'), rojosoft:c('rojo-soft')
+        },
+        fontFamily:{
+          sans:['IBM Plex Sans','Segoe UI','system-ui','sans-serif'],
+          display:['Archivo','Segoe UI','system-ui','sans-serif'],
+          mono:['IBM Plex Mono','ui-monospace','monospace']
+        },
+        boxShadow:{
+          card:'0 1px 2px rgba(16,26,24,.06), 0 6px 18px -10px rgba(16,26,24,.22)',
+          pop:'0 10px 40px -12px rgba(16,26,24,.34)'
+        }
+      }
+    }
+  }
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.294.0/dist/umd/lucide.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.4/babel.min.js"></script>
+
+<div id="root"></div>
+
+<script>
+  window.ESCUDO_MUNICIPAL = "data:image/png;base64,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";
+</script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+/* ══════════════════════════════════════════════════════════════════
+   1. MATRIZ CONTRACTUAL — las 11 obligaciones
+   ══════════════════════════════════════════════════════════════════ */
+const OBLIGACIONES = [
+  { id:1,  cod:'O-01', eje:'Políticas públicas', meta:2, icon:'users',
+    corto:'Comités de política pública',
+    titulo:'Preparar los espacios y realizar seguimiento a los comités de las políticas públicas LGBTI, Discapacidad y Afrodescendientes.',
+    politicas:['LGBTI','Discapacidad','Afrodescendientes'], entregable:'acta' },
+  { id:2,  cod:'O-02', eje:'Políticas públicas', meta:1, icon:'target',
+    corto:'Metas Juventud · Adulto Mayor · Mujer · MIAFF',
+    titulo:'Apoyar el cumplimiento de las metas establecidas en las políticas públicas de Juventud, Adulto Mayor, Mujer y MIAFF.',
+    politicas:['Juventud','Adulto Mayor','Mujer','MIAFF'], entregable:'informe' },
+  { id:3,  cod:'O-03', eje:'Paz y reconciliación', meta:1, icon:'bird',
+    corto:'Consejo Territorial de Paz',
+    titulo:'Coordinar el Consejo Territorial de Paz, Reconciliación y Convivencia, elaborar las actas y realizar seguimiento a los planes de acción.',
+    politicas:['Paz'], entregable:'acta' },
+  { id:4,  cod:'O-04', eje:'Derechos humanos', meta:3, icon:'siren',
+    corto:'Alertas Tempranas (SAT)',
+    titulo:'Realizar seguimiento y gestionar el cumplimiento de las recomendaciones de las Alertas Tempranas emitidas por la Defensoría del Pueblo.',
+    politicas:['DDHH'], entregable:'informe' },
+  { id:5,  cod:'O-05', eje:'Derechos humanos', meta:1, icon:'shield-check',
+    corto:'Subcomité de Prevención y Protección',
+    titulo:'Coordinar el Subcomité de Prevención, Protección y Garantías de No Repetición, levantar las actas y hacer seguimiento a los compromisos.',
+    politicas:['DDHH'], entregable:'acta' },
+  { id:6,  cod:'O-06', eje:'Paz y reconciliación', meta:1, icon:'map',
+    corto:'PDET · Pilar 8',
+    titulo:'Coordinar, hacer seguimiento y evaluar la iniciativa PDET Pilar 8 — Reconciliación, Convivencia y Construcción de Paz.',
+    politicas:['Paz','PDET'], entregable:'informe' },
+  { id:7,  cod:'O-07', eje:'Atención a la ciudadanía', meta:4, icon:'globe',
+    corto:'Población migrante',
+    titulo:'Atender y orientar a la población migrante que acude a la Secretaría, activando las rutas institucionales correspondientes.',
+    politicas:['Migrantes'], entregable:'informe' },
+  { id:8,  cod:'O-08', eje:'Protección', meta:2, icon:'file-lock',
+    corto:'Trámites UNP',
+    titulo:'Tramitar ante la Unidad Nacional de Protección las medidas de protección para líderes sociales, defensores de derechos humanos y personas en proceso de reincorporación.',
+    politicas:['Protección'], entregable:'informe' },
+  { id:9,  cod:'O-09', eje:'Protección', meta:1, icon:'route',
+    corto:'Rutas de protección',
+    titulo:'Activar las rutas de protección ante situaciones de riesgo extraordinario o extremo reportadas en el territorio.',
+    politicas:['Protección'], entregable:'informe' },
+  { id:10, cod:'O-10', eje:'Atención a la ciudadanía', meta:4, icon:'mail',
+    corto:'PQRS',
+    titulo:'Proyectar y dar respuesta a las peticiones, quejas, reclamos y sugerencias asignadas a la Secretaría dentro de los términos de ley.',
+    politicas:['PQRS'], entregable:'informe' },
+  { id:11, cod:'O-11', eje:'Transversal', meta:2, icon:'layers',
+    corto:'Obligaciones complementarias',
+    titulo:'Cumplir las demás obligaciones asignadas por el supervisor del contrato, acordes con la naturaleza del objeto contractual.',
+    politicas:['Transversal'], entregable:'informe' }
+];
+const obl = id => OBLIGACIONES.find(o => o.id === Number(id)) || OBLIGACIONES[10];
+
+const TIPOS = ['Comité de política pública','Consejo Territorial de Paz','Subcomité de Prevención','Mesa técnica','Jornada o evento','Atención a la ciudadanía','Trámite institucional','Visita territorial','Respuesta a PQRS','Capacitación','Seguimiento a compromisos'];
+
+const ACCESOS = [
+  { label:'Comité LGBTI',      ob:1,  tipo:'Comité de política pública', icon:'users',       instancia:'Comité Municipal de Política Pública LGBTI' },
+  { label:'Comité Discapacidad',ob:1, tipo:'Comité de política pública', icon:'accessibility',instancia:'Comité Municipal de Discapacidad' },
+  { label:'Comité Afro',       ob:1,  tipo:'Comité de política pública', icon:'users-round', instancia:'Comité de Comunidades Negras, Afrocolombianas, Raizales y Palenqueras' },
+  { label:'Consejo de Paz',    ob:3,  tipo:'Consejo Territorial de Paz', icon:'bird',        instancia:'Consejo Territorial de Paz, Reconciliación y Convivencia' },
+  { label:'Subcomité P.P.GNR', ob:5,  tipo:'Subcomité de Prevención',    icon:'shield-check',instancia:'Subcomité de Prevención, Protección y Garantías de No Repetición' },
+  { label:'Alerta SAT',        ob:4,  tipo:'Seguimiento a compromisos',  icon:'siren',       instancia:'' },
+  { label:'Atención migrante', ob:7,  tipo:'Atención a la ciudadanía',   icon:'globe',       instancia:'' },
+  { label:'Trámite UNP',       ob:8,  tipo:'Trámite institucional',      icon:'file-lock',   instancia:'' },
+  { label:'Ruta de protección',ob:9,  tipo:'Trámite institucional',      icon:'route',       instancia:'' },
+  { label:'PQRS',              ob:10, tipo:'Respuesta a PQRS',           icon:'mail',        instancia:'' }
+];
+
+/* Ficha de la aplicación. El nombre del editor sale de aquí a la cabecera,
+   al pie, a Ajustes y a las etiquetas <meta> que genera build.py. */
+const APP = {
+  nombre:'Bitácora Territorial',
+  version:'1.0.0',
+  editor:'Lab-S',
+  anio:'2026'
+};
+
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DIAS  = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+
+/* ══════════════════════════════════════════════════════════════════
+   2. UTILIDADES
+   ══════════════════════════════════════════════════════════════════ */
+const uid = p => (p||'id') + '_' + Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-3);
+const cx  = (...a) => a.filter(Boolean).join(' ');
+const hoyISO = () => new Date().toISOString().slice(0,10);
+const mesDe  = iso => (iso||'').slice(0,7);
+const parseISO = iso => { const [y,m,d] = (iso||hoyISO()).split('-').map(Number); return new Date(y, m-1, d||1); };
+const fechaLarga = iso => { const d = parseISO(iso); return `${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`; };
+const fechaCorta = iso => { const d = parseISO(iso); return `${String(d.getDate()).padStart(2,'0')} ${MESES[d.getMonth()].slice(0,3)}`; };
+const diaSemana  = iso => DIAS[parseISO(iso).getDay()];
+const mesLargo   = mk => { const [y,m] = mk.split('-'); return `${MESES[Number(m)-1]} de ${y}`; };
+const enLetras   = n => ['cero','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','once','doce','trece','catorce','quince','dieciséis','diecisiete','dieciocho','diecinueve','veinte'][n] || String(n);
+const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const pct = (a,b) => b <= 0 ? 0 : Math.min(100, Math.round((a/b)*100));
+
+function mesesDisponibles(acts){
+  const s = new Set(acts.map(a => mesDe(a.fecha)));
+  s.add(mesDe(hoyISO()));
+  return [...s].sort().reverse();
+}
+
+/* Estado del semáforo por obligación */
+function estadoSem(n, meta){
+  const p = pct(n, meta);
+  if (n === 0) return { k:'rojo',  label:'Sin registros', p:0 };
+  if (p >= 100) return { k:'verde', label:'Cumplida',     p };
+  if (p >= 40)  return { k:'ambar', label:'En avance',    p };
+  return { k:'rojo', label:'En riesgo', p };
+}
+const SEM = {
+  verde:{ rail:'rgb(var(--verde))', chip:'bg-verdesoft text-verde', dot:'bg-verde' },
+  ambar:{ rail:'rgb(var(--ambar))', chip:'bg-ambarsoft text-ambar', dot:'bg-ambar' },
+  rojo: { rail:'rgb(var(--rojo))',  chip:'bg-rojosoft text-rojo',   dot:'bg-rojo'  }
+};
+
+/* Compresión de fotos: el celular entrega 4 MB, el acta necesita 120 KB */
+function comprimirImagen(file, maxLado = 1280, calidad = 0.62){
+  return new Promise(resolve => {
+    const fr = new FileReader();
+    fr.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let { width:w, height:h } = img;
+        const f = Math.min(1, maxLado / Math.max(w,h));
+        w = Math.round(w*f); h = Math.round(h*f);
+        try{
+          const cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve({ dataUrl: cv.toDataURL('image/jpeg', calidad), w, h });
+        }catch(e){ resolve({ dataUrl: fr.result, w, h }); }
+      };
+      img.onerror = () => resolve({ dataUrl: fr.result, w:0, h:0 });
+      img.src = fr.result;
+    };
+    fr.onerror = () => resolve(null);
+    fr.readAsDataURL(file);
+  });
+}
+
+/* Marcadores de evidencia para los datos de ejemplo */
+function evidenciaDemo(titulo, sub, tono){
+  const fondo = tono === 'f' ? '#B32074' : '#0E5A78';
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="560" height="380" viewBox="0 0 560 380">' +
+    '<rect width="560" height="380" fill="#EDF1F2"/>' +
+    '<rect x="0" y="0" width="560" height="6" fill="'+fondo+'"/>' +
+    '<g opacity="0.14" fill="'+fondo+'"><circle cx="150" cy="200" r="66"/><circle cx="280" cy="230" r="52"/><circle cx="405" cy="195" r="72"/>' +
+    '<rect x="60" y="272" width="440" height="66" rx="10"/></g>' +
+    '<text x="28" y="60" font-family="Archivo, sans-serif" font-size="25" font-weight="700" fill="#13262C">'+esc(titulo)+'</text>' +
+    '<text x="28" y="90" font-family="IBM Plex Mono, monospace" font-size="15" fill="#4a5a60">'+esc(sub)+'</text>' +
+    '<text x="28" y="360" font-family="IBM Plex Mono, monospace" font-size="12" fill="#7a8a90">EVIDENCIA DE EJEMPLO — reemplazar con la foto real</text>' +
+    '</svg>';
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   3. REDACTOR INSTITUCIONAL (motor local, espejo del system prompt)
+      Convierte la nota de campo en prosa técnico-administrativa.
+   ══════════════════════════════════════════════════════════════════ */
+const SIGLAS = {
+  'pp':'política pública','sat':'Sistema de Alertas Tempranas','unp':'Unidad Nacional de Protección',
+  'pdet':'Programa de Desarrollo con Enfoque Territorial','pqrs':'peticiones, quejas, reclamos y sugerencias',
+  'ctp':'Consejo Territorial de Paz','ddhh':'derechos humanos','gnr':'garantías de no repetición',
+  'sec':'Secretaría','alc':'Alcaldía','mpio':'municipio','depto':'departamento','cmt':'comité',
+  'benef':'beneficiarios','poblac':'población','doc':'documento','info':'información','q':'que','x':'por',
+  'xq':'porque','tmb':'también','pers':'personas','reu':'reunión','seg':'seguimiento','aprox':'aproximadamente',
+  'lgtbi':'LGBTI','lgbti':'LGBTI','miaff':'MIAFF','icbf':'ICBF','ep':'Enlace de Paz'
+};
+const VERBOS = [
+  [/\b(hicimos|hice|realizamos|realicé)\b/gi,          'se llevó a cabo'],
+  [/\b(fuimos|fui|me desplacé|nos desplazamos)\b/gi,   'se efectuó desplazamiento institucional'],
+  [/\b(hablamos|hablé|charlamos|conversamos)\b/gi,     'se socializó'],
+  [/\b(quedamos en|acordamos|nos comprometimos a)\b/gi,'se acordó'],
+  [/\b(revisamos|revisé|miramos|miré)\b/gi,            'se efectuó revisión de'],
+  [/\b(ayudamos|ayudé|atendí|atendimos)\b/gi,          'se brindó atención y orientación a'],
+  [/\b(mandé|mandamos|envié|enviamos)\b/gi,            'se remitió'],
+  [/\b(llamé|llamamos)\b/gi,                           'se estableció comunicación con'],
+  [/\b(arreglamos|gestioné|gestionamos|resolvimos)\b/gi,'se gestionó'],
+  [/\b(explicamos|expliqué|contamos|conté)\b/gi,       'se presentó'],
+  [/\b(pedimos|pedí|solicitamos|solicité)\b/gi,        'se solicitó'],
+  [/\b(dijeron|dijo|comentaron)\b/gi,                  'manifestaron'],
+  [/\b(se quejaron|reclamaron)\b/gi,                   'expusieron su inconformidad respecto de'],
+  [/\b(no llegó|no llegaron|faltaron)\b/gi,            'no se registró asistencia de'],
+  [/\b(vino|vinieron|asistió mucha gente)\b/gi,        'asistieron'],
+  [/\bun poco\b/gi,'parcialmente'], [/\bmuy bien\b/gi,'de manera satisfactoria'],
+  [/\bcosas\b/gi,'aspectos'], [/\bgente\b/gi,'las personas participantes'], [/\bproblema\b/gi,'situación problemática'],
+  [/\bempezó\b/gi,'dio inicio'], [/\bterminó\b/gi,'finalizó'], [/\bsuper\b/gi,'']
+];
+const APERTURAS = {
+  'Comité de política pública':'se preparó y acompañó la sesión de',
+  'Consejo Territorial de Paz':'se coordinó y desarrolló la sesión del',
+  'Subcomité de Prevención':'se convocó y desarrolló la sesión del',
+  'Mesa técnica':'se desarrolló mesa técnica de articulación en el marco de',
+  'Jornada o evento':'se desarrolló jornada institucional correspondiente a',
+  'Atención a la ciudadanía':'se brindó atención, orientación y activación de ruta en el marco de',
+  'Trámite institucional':'se adelantó el trámite institucional correspondiente a',
+  'Visita territorial':'se realizó visita de verificación territorial en el marco de',
+  'Respuesta a PQRS':'se proyectó la respuesta de fondo correspondiente a',
+  'Capacitación':'se desarrolló proceso de formación y capacitación sobre',
+  'Seguimiento a compromisos':'se adelantó seguimiento a los compromisos derivados de'
+};
+
+function redactarInstitucional(nota, ctx = {}){
+  let t = String(nota || '').trim();
+  if (!t) return '';
+  t = t.replace(/\s+/g,' ');
+  t = t.replace(/\b([a-záéíóúñ]+)\b/gi, w => {
+    const k = w.toLowerCase();
+    return Object.prototype.hasOwnProperty.call(SIGLAS,k) ? SIGLAS[k] : w;
+  });
+  VERBOS.forEach(([re,rep]) => { t = t.replace(re, rep); });
+  t = t.charAt(0).toLowerCase() + t.slice(1);
+  t = t.replace(/\s+([,.;])/g,'$1').replace(/\s{2,}/g,' ').replace(/[.\s]+$/,'');
+
+  const o = obl(ctx.obligacionId || 11);
+  const apertura = APERTURAS[ctx.tipo] || 'se adelantó la actividad correspondiente a';
+  const lugar = ctx.lugar ? ` en ${ctx.lugar}` : '';
+  const fecha = ctx.fecha ? `el día ${diaSemana(ctx.fecha)} ${fechaLarga(ctx.fecha)}` : 'en la fecha de la presente';
+  const instancia = ctx.instancia || o.corto;
+
+  const p1 = `En cumplimiento de la obligación contractual N.º ${o.id} — ${o.titulo.replace(/\.$/,'')} —, ${fecha}${lugar} ${apertura} ${instancia}.`;
+  const p2 = `Durante el desarrollo de la actividad ${t}.`;
+  const partes = [p1, p2];
+
+  if (ctx.participantes > 0)
+    partes.push(`Se registró la participación de ${enLetras(ctx.participantes)} (${ctx.participantes}) ${ctx.participantes === 1 ? 'persona' : 'personas'}, conforme consta en la planilla de asistencia anexa.`);
+  if (ctx.compromisos > 0)
+    partes.push(`De la sesión se derivaron ${enLetras(ctx.compromisos)} (${ctx.compromisos}) compromisos institucionales, cuyo seguimiento queda a cargo de esta dependencia.`);
+  if (ctx.evidencias > 0)
+    partes.push(`Como soporte se anexan ${enLetras(ctx.evidencias)} (${ctx.evidencias}) registros de evidencia documental y fotográfica.`);
+
+  partes.push('Lo anterior se reporta para efectos del seguimiento a la ejecución contractual y del informe mensual de actividades.');
+  return partes.join(' ');
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   2.b AUTOCOMPLETADO — lo repetitivo lo pone la app, no el pulgar
+   ══════════════════════════════════════════════════════════════════ */
+const diasDesde = iso => Math.round((parseISO(hoyISO()) - parseISO(iso)) / 86400000);
+function fechaRelativa(iso){
+  const d = diasDesde(iso);
+  if (d <= 0) return 'hoy';
+  if (d === 1) return 'ayer';
+  if (d < 7) return `hace ${d} días`;
+  return fechaCorta(iso);
+}
+
+const masFrecuente = (lista) => {
+  const c = {};
+  lista.filter(Boolean).forEach(v => { c[v] = (c[v] || 0) + 1; });
+  let mejor = null, n = 0;
+  Object.keys(c).forEach(k => { if (c[k] > n){ n = c[k]; mejor = k; } });
+  return mejor;
+};
+
+/* Sugiere obligación, tipo, lugar e instancia a partir de lo que la usuaria
+   ya viene registrando. Sin historia, cae en la primera obligación. */
+function sugerirContexto(acts){
+  const recientes = acts.filter(a => diasDesde(a.fecha) <= 60).slice(0, 40);
+  if (!recientes.length) return { obligacionId:1, tipo:TIPOS[0], lugar:'', instancia:'', razon:'valor por defecto' };
+  const obligacionId = Number(masFrecuente(recientes.map(a => a.obligacionId))) || 1;
+  const delMismo = recientes.filter(a => a.obligacionId === obligacionId);
+  return {
+    obligacionId,
+    tipo: masFrecuente(delMismo.map(a => a.tipo)) || TIPOS[0],
+    lugar: masFrecuente(delMismo.map(a => a.lugar)) || '',
+    instancia: masFrecuente(delMismo.map(a => a.instancia)) || '',
+    razon: `lo más frecuente de tus últimos ${recientes.length} registros`
+  };
+}
+
+/* Lugares que ya usó, para elegirlos con el pulgar en vez de escribirlos */
+function lugaresFrecuentes(acts, obligacionId, max = 4){
+  const propios = acts.filter(a => a.obligacionId === Number(obligacionId) && a.lugar);
+  const otros = acts.filter(a => a.obligacionId !== Number(obligacionId) && a.lugar);
+  const vistos = [];
+  [...propios, ...otros].forEach(a => { if (!vistos.includes(a.lugar)) vistos.push(a.lugar); });
+  return vistos.slice(0, max);
+}
+
+/* Instancias oficiales ya usadas en esa obligación, más las de los accesos directos */
+function instanciasFrecuentes(acts, obligacionId, max = 4){
+  const deAccesos = ACCESOS.filter(x => x.ob === Number(obligacionId) && x.instancia).map(x => x.instancia);
+  const deHistoria = acts.filter(a => a.obligacionId === Number(obligacionId) && a.instancia).map(a => a.instancia);
+  const vistos = [];
+  [...deHistoria, ...deAccesos].forEach(v => { if (!vistos.includes(v)) vistos.push(v); });
+  return vistos.slice(0, max);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   4. PERSISTENCIA LOCAL + DATOS DE EJEMPLO
+   ══════════════════════════════════════════════════════════════════ */
+const LS_KEY = 'bitacora-territorial.v1';
+const SANDBOX = (() => { try { return window.self !== window.top; } catch(e){ return true; } })();
+
+const CONFIG_INICIAL = {
+  municipio:'Simití',
+  departamento:'Bolívar',
+  lema:'Tierra encantadora y bella',
+  direccion:'Calle 12 # 5-31 — Palacio Municipal',
+  codigoPostal:'135020',
+  telefono:'(+57) 318 354 0171',
+  correo:'alcaldia@simiti-bolivar.gov.co',
+  web:'www.simiti-bolivar.gov.co',
+  secretaria:'Secretaría General',
+  dependencia:'Enlace Territorial de Derechos Humanos, Paz y Poblaciones',
+  contratista:'«Nombre del contratista»',
+  cedula:'«C.C. N.º»',
+  contrato:'CPS-000-2026',
+  objeto:'Prestación de servicios profesionales para el acompañamiento territorial de las políticas públicas poblacionales, la coordinación de las instancias de paz y derechos humanos, y la atención a la población en situación de riesgo del municipio de Simití, Bolívar.',
+  supervisor:'«Nombre del supervisor»',
+  cargoSupervisor:'Secretario de Gobierno y Convivencia Ciudadana',
+  valorMes:'«$ 0.000.000»',
+  codigoFormato:'FT-GD-02'
+};
+
+function seed(){
+  const ev = [];
+  const mkEv = (actividadId, titulo, sub, tipo, tono) => {
+    const e = { id:uid('ev'), actividadId, nombre:titulo, descripcion:sub, tipo, dataUrl: tipo === 'foto' ? evidenciaDemo(titulo, sub, tono) : null, creadoEn:new Date().toISOString(), demo:true };
+    ev.push(e); return e.id;
+  };
+  const A = [];
+  const add = (o) => { const a = { id:uid('act'), evidencias:[], participantes:0, demo:true, ...o }; A.push(a); return a; };
+
+  let a;
+  a = add({ obligacionId:1, fecha:'2026-09-03', hora:'08:30', tipo:'Comité de política pública',
+    instancia:'Comité Municipal de Política Pública LGBTI',
+    titulo:'Sesión ordinaria del Comité de Política Pública LGBTI',
+    lugar:'Salón de Juntas — Alcaldía Municipal', participantes:17,
+    notaCruda:'reunimos el comité lgtbi, revisamos el plan de accion 2026 y quedamos en que salud manda el informe de atencion diferencial antes del 30',
+    descripcion:'' });
+  a.evidencias = [ mkEv(a.id,'Registro fotográfico','Instalación de la sesión','foto','f'), mkEv(a.id,'Planilla de asistencia','17 asistentes — firmas','foto','a'), mkEv(a.id,'Plan de acción 2026','PDF · 14 páginas','pdf','a') ];
+
+  a = add({ obligacionId:3, fecha:'2026-09-08', hora:'09:00', tipo:'Consejo Territorial de Paz',
+    instancia:'Consejo Territorial de Paz, Reconciliación y Convivencia',
+    titulo:'Cuarta sesión del Consejo Territorial de Paz',
+    lugar:'Casa de la Cultura', participantes:24,
+    notaCruda:'sesion del ctp, se presento el avance del plan de accion y la gente pidio priorizar la ruta de reincorporacion, acordamos mesa tecnica el proximo mes',
+    descripcion:'' });
+  a.evidencias = [ mkEv(a.id,'Registro fotográfico','Intervención de consejeros','foto','a'), mkEv(a.id,'Planilla de asistencia','24 asistentes','foto','f') ];
+
+  a = add({ obligacionId:5, fecha:'2026-09-10', hora:'14:00', tipo:'Subcomité de Prevención',
+    instancia:'Subcomité de Prevención, Protección y Garantías de No Repetición',
+    titulo:'Sesión del Subcomité de Prevención, Protección y GNR',
+    lugar:'Sala de crisis — Secretaría de Gobierno', participantes:12,
+    notaCruda:'subcomite de prevencion, revisamos los casos de riesgo de 3 lideres y quedamos en activar ruta unp para dos de ellos',
+    descripcion:'' });
+  a.evidencias = [ mkEv(a.id,'Registro fotográfico','Desarrollo de la sesión','foto','a') ];
+
+  a = add({ obligacionId:4, fecha:'2026-09-11', hora:'10:00', tipo:'Seguimiento a compromisos',
+    instancia:'Alerta Temprana 012-2026 — Defensoría del Pueblo',
+    titulo:'Seguimiento a recomendaciones de la Alerta Temprana 012-2026',
+    lugar:'Secretaría de Gobierno', participantes:9,
+    notaCruda:'revisamos la matriz de la alerta 012, van 6 de 11 recomendaciones, falta que policia mande el reporte de patrullajes',
+    descripcion:'' });
+  a.evidencias = [ mkEv(a.id,'Matriz de seguimiento AT 012-2026','Formato Defensoría','pdf','a') ];
+
+  a = add({ obligacionId:7, fecha:'2026-09-04', hora:'07:30', tipo:'Atención a la ciudadanía',
+    titulo:'Atención y orientación a población migrante',
+    lugar:'Ventanilla única — Alcaldía Municipal', participantes:6,
+    notaCruda:'atendi 6 familias venezolanas, las oriente x el tema de regularizacion y las remiti a salud y al icbf',
+    descripcion:'' });
+  a.evidencias = [ mkEv(a.id,'Registro de atención','Formato de orientación','foto','a') ];
+
+  a = add({ obligacionId:7, fecha:'2026-09-14', hora:'08:00', tipo:'Atención a la ciudadanía',
+    titulo:'Jornada de orientación a población migrante — Comuna 3',
+    lugar:'Centro de Desarrollo Comunitario — Comuna 3', participantes:31,
+    notaCruda:'jornada con 31 pers migrantes, explicamos rutas de salud educacion y trabajo, vino migracion colombia',
+    descripcion:'' });
+  a.evidencias = [ mkEv(a.id,'Registro fotográfico','Jornada en territorio','foto','f'), mkEv(a.id,'Planilla de asistencia','31 asistentes','foto','a') ];
+
+  a = add({ obligacionId:8, fecha:'2026-09-09', hora:'11:00', tipo:'Trámite institucional',
+    titulo:'Radicación de solicitud de medidas de protección ante la UNP',
+    lugar:'Plataforma UNP — trámite virtual', participantes:2,
+    notaCruda:'mandé a la unp la solicitud de 2 lideres sociales con el formato de riesgo y los soportes, radicado UNP-2026-4471',
+    descripcion:'', radicado:'UNP-2026-4471' });
+  a.evidencias = [ mkEv(a.id,'Acuse de radicación UNP','UNP-2026-4471','pdf','a') ];
+
+  a = add({ obligacionId:9, fecha:'2026-09-12', hora:'16:20', tipo:'Trámite institucional',
+    titulo:'Activación de ruta de protección por riesgo extraordinario',
+    lugar:'Secretaría de Gobierno', participantes:1,
+    notaCruda:'activé ruta de proteccion x amenaza a una lideresa, llamé a policia y personeria y quedamos en revision del caso en 48 horas',
+    descripcion:'' });
+
+  a = add({ obligacionId:10, fecha:'2026-09-05', hora:'15:00', tipo:'Respuesta a PQRS',
+    titulo:'Respuesta a PQRS — radicado 2026-EE-0891',
+    lugar:'Secretaría de Gobierno', participantes:0,
+    notaCruda:'proyecte la respuesta del radicado 0891 sobre la falta de alumbrado en el barrio, la mandé a la secretaria de infraestructura',
+    descripcion:'', radicado:'2026-EE-0891' });
+
+  a = add({ obligacionId:10, fecha:'2026-09-15', hora:'09:40', tipo:'Respuesta a PQRS',
+    titulo:'Respuesta a PQRS — radicado 2026-EE-0907',
+    lugar:'Secretaría de Gobierno', participantes:0,
+    notaCruda:'conteste el radicado 0907 de la junta de accion comunal x el tema de convivencia, se remitio a la inspeccion',
+    descripcion:'', radicado:'2026-EE-0907' });
+
+  a = add({ obligacionId:2, fecha:'2026-09-02', hora:'14:30', tipo:'Mesa técnica',
+    instancia:'Mesa técnica de Política Pública de Mujer y Equidad de Género',
+    titulo:'Mesa técnica de seguimiento a metas — Mujer y MIAFF',
+    lugar:'Secretaría de Desarrollo Social', participantes:11,
+    notaCruda:'mesa tecnica con mujer y miaff, revisamos el cumplimiento de metas del plan de desarrollo, van bien las de prevencion de violencias',
+    descripcion:'' });
+  a.evidencias = [ mkEv(a.id,'Registro fotográfico','Mesa técnica','foto','f') ];
+
+  a = add({ obligacionId:1, fecha:'2026-09-15', hora:'08:00', tipo:'Comité de política pública',
+    instancia:'Comité Municipal de Discapacidad',
+    titulo:'Sesión ordinaria del Comité Municipal de Discapacidad',
+    lugar:'Salón de Juntas — Alcaldía Municipal', participantes:19,
+    notaCruda:'comite de discapacidad, presentamos el avance de la caracterizacion y la gente reclamó x el transporte adaptado',
+    descripcion:'' });
+  a.evidencias = [ mkEv(a.id,'Registro fotográfico','Sesión del comité','foto','a'), mkEv(a.id,'Planilla de asistencia','19 asistentes','foto','a') ];
+
+  a = add({ obligacionId:11, fecha:'2026-09-07', hora:'10:00', tipo:'Capacitación',
+    titulo:'Capacitación en enfoque diferencial a funcionarios de la Secretaría',
+    lugar:'Auditorio municipal', participantes:22,
+    notaCruda:'capacite a 22 funcionarios en enfoque diferencial y rutas de atencion, quedaron de aplicar el formato nuevo',
+    descripcion:'' });
+
+  A.forEach(x => {
+    x.descripcion = redactarInstitucional(x.notaCruda, {
+      obligacionId:x.obligacionId, tipo:x.tipo, fecha:x.fecha, lugar:x.lugar,
+      participantes:x.participantes, evidencias:(x.evidencias||[]).length, instancia:x.instancia
+    });
+  });
+
+  const actas = [{
+    id:uid('acta'), demo:true, consecutivo:'004', obligacionId:3,
+    instancia:'Consejo Territorial de Paz, Reconciliación y Convivencia',
+    fecha:'2026-09-08', horaInicio:'09:00', horaFin:'11:40',
+    lugar:'Casa de la Cultura — Salón principal', modalidad:'Presencial',
+    convoca:'Secretaría de Gobierno y Convivencia Ciudadana',
+    objetivo:'Presentar el avance del plan de acción 2026 del Consejo Territorial de Paz y definir la priorización de la ruta de reincorporación en el municipio.',
+    ordenDia:[
+      'Verificación del quórum e instalación de la sesión',
+      'Lectura y aprobación del orden del día',
+      'Seguimiento a compromisos de la sesión anterior',
+      'Presentación del avance del plan de acción 2026',
+      'Priorización de la ruta de reincorporación',
+      'Proposiciones y varios'
+    ],
+    desarrollo:[
+      { punto:1, texto:'Siendo las 09:00 horas se verificó el quórum deliberatorio y decisorio con la asistencia de veinticuatro (24) consejeros y delegados institucionales, procediéndose a la instalación de la sesión por parte de la Secretaría Técnica.' },
+      { punto:2, texto:'Se dio lectura al orden del día propuesto, el cual fue aprobado por unanimidad sin modificaciones ni adiciones por parte de los asistentes.' },
+      { punto:3, texto:'La Secretaría Técnica presentó la matriz de seguimiento a los compromisos adquiridos en la sesión anterior, reportando el cumplimiento de cuatro (4) de los seis (6) compromisos registrados. Los dos (2) compromisos pendientes corresponden a la entrega del reporte de patrullajes y a la designación del delegado del sector educativo.' },
+      { punto:4, texto:'Se presentó el avance del plan de acción 2026, el cual registra un cumplimiento del sesenta y dos por ciento (62%) de las actividades programadas al corte del mes de agosto. Se destacó el avance en las líneas de convivencia y prevención de la conflictividad social.' },
+      { punto:5, texto:'Los consejeros manifestaron la necesidad de priorizar la ruta de atención a población en proceso de reincorporación. Se acordó la conformación de una mesa técnica con participación de la Agencia para la Reincorporación y la Normalización, la Personería Municipal y la Secretaría de Desarrollo Social.' },
+      { punto:6, texto:'No se presentaron proposiciones adicionales. Se fijó la próxima sesión ordinaria para el mes de octubre de 2026.' }
+    ],
+    compromisos:[
+      { id:uid('c'), descripcion:'Remitir el reporte consolidado de patrullajes y acciones preventivas del tercer trimestre.', responsable:'Comandante de Estación', entidad:'Policía Nacional', fecha:'2026-09-30', estado:'Pendiente' },
+      { id:uid('c'), descripcion:'Convocar y realizar la primera sesión de la mesa técnica de reincorporación.', responsable:'Secretaría Técnica', entidad:'Secretaría de Gobierno', fecha:'2026-10-15', estado:'En trámite' },
+      { id:uid('c'), descripcion:'Designar formalmente el delegado del sector educativo ante el Consejo.', responsable:'Director de Núcleo', entidad:'Secretaría de Educación', fecha:'2026-09-12', estado:'Pendiente' }
+    ],
+    asistentes:[
+      { id:uid('as'), nombre:'«Delegado/a»', cargo:'Secretario de Gobierno', entidad:'Alcaldía Municipal', contacto:'' },
+      { id:uid('as'), nombre:'«Delegado/a»', cargo:'Personero Municipal', entidad:'Personería Municipal', contacto:'' },
+      { id:uid('as'), nombre:'«Delegado/a»', cargo:'Comandante de Estación', entidad:'Policía Nacional', contacto:'' },
+      { id:uid('as'), nombre:'«Delegado/a»', cargo:'Representante de víctimas', entidad:'Mesa Municipal de Víctimas', contacto:'' },
+      { id:uid('as'), nombre:'«Delegado/a»', cargo:'Representante juvenil', entidad:'Plataforma Municipal de Juventud', contacto:'' }
+    ],
+    conclusiones:'La sesión se desarrolló con normalidad y en el marco del reglamento interno del Consejo. Se levanta la sesión siendo las 11:40 horas.',
+    evidencias:[], elaboradaPor:'', creadaEn:'2026-09-08'
+  }];
+  const evsActa = A.filter(x => x.fecha === '2026-09-08').flatMap(x => x.evidencias);
+  actas[0].evidencias = evsActa;
+
+  return { actividades:A, evidencias:ev, actas, config:CONFIG_INICIAL, tema:'auto' };
+}
+
+function cargarEstado(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw){
+      const p = JSON.parse(raw);
+      if (p && Array.isArray(p.actividades)){
+        const config = { ...CONFIG_INICIAL, ...(p.config || {}) };
+        // Migración: las versiones previas guardaban el municipio como marcador.
+        if (String(config.municipio || '').indexOf('«') === 0){
+          config.municipio = CONFIG_INICIAL.municipio;
+          config.departamento = CONFIG_INICIAL.departamento;
+          // Solo se pisa la secretaría si nunca se tocó: el valor editado manda.
+          if (config.secretaria === 'Secretaría de Gobierno y Convivencia Ciudadana')
+            config.secretaria = CONFIG_INICIAL.secretaria;
+        }
+        return { ...seed(), ...p, config };
+      }
+    }
+  }catch(e){ /* almacenamiento bloqueado: se trabaja en memoria */ }
+  return seed();
+}
+function guardarEstado(st){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(st)); return true; }
+  catch(e){
+    try{
+      const liviano = { ...st, evidencias: st.evidencias.map(x => ({ ...x, dataUrl: x.dataUrl && x.dataUrl.length > 4000 ? null : x.dataUrl })) };
+      localStorage.setItem(LS_KEY, JSON.stringify(liviano));
+    }catch(e2){ /* sin persistencia: la sesión sigue funcionando en memoria */ }
+    return false;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   5. SALIDA: copiar a Word, imprimir, descargar
+   ══════════════════════════════════════════════════════════════════ */
+function envolverWord(titulo, cuerpo, estilos){
+  return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+    '<head><meta charset="utf-8"><title>' + esc(titulo) + '</title>' +
+    '<xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml>' +
+    '<style>@page{size:21cm 29.7cm;margin:2cm 1.8cm}body{font-family:Georgia,serif;font-size:11pt;color:#111}' + estilos + '</style></head>' +
+    '<body>' + cuerpo + '</body></html>';
+}
+const ESTILOS_DOC = 'h1{font-size:13pt;text-transform:uppercase;text-align:center;font-family:Arial,sans-serif}h2{font-size:11pt;text-transform:uppercase;color:#0E5A78;border-bottom:1.5px solid #0E5A78;font-family:Arial,sans-serif;padding-bottom:3pt;margin-top:16pt}h3{font-size:10.5pt;font-family:Arial,sans-serif}p{text-align:justify;margin:0 0 6pt}table{width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:9pt;margin:6pt 0 10pt}th{background:#EAF1F4;border:1px solid #9FB4BD;padding:4pt;text-align:left;font-size:8.5pt;text-transform:uppercase}td{border:1px solid #B9C6CB;padding:4pt;vertical-align:top}.membrete{border-bottom:2pt solid #0E5A78;padding-bottom:6pt}.ctrl{font-family:Consolas,monospace;font-size:7.5pt;color:#4a5a60;border-bottom:1px solid #C7D2D6;padding-bottom:4pt;margin-bottom:10pt}.anexo-grid{width:100%}.anexo-grid img{width:250px;height:auto}.anexo-grid figcaption{font-family:Arial,sans-serif;font-size:8pt;color:#4a5a60}.firma div{border-top:1px solid #111;padding-top:4pt;font-family:Arial,sans-serif;font-size:8.5pt;width:45%;display:inline-block;margin-right:16pt}.nota{background:#F3F7F8;border-left:3pt solid #0E5A78;padding:6pt;font-family:Arial,sans-serif;font-size:9pt}.sello{border:1.5pt solid #B32074;color:#B32074;padding:5pt;font-family:Arial,sans-serif;font-size:8.5pt;text-transform:uppercase}.escudo{width:64px;height:auto}.escudo-alt{display:none}.pie{border-top:1px solid #C7D2D6;padding-top:6pt;margin-top:16pt;font-family:Arial,sans-serif;font-size:7.5pt;color:#5d6f74;text-align:center}';
+
+async function copiarRico(html, textoPlano){
+  try{
+    if (navigator.clipboard && window.ClipboardItem){
+      await navigator.clipboard.write([ new ClipboardItem({
+        'text/html': new Blob([html], { type:'text/html' }),
+        'text/plain': new Blob([textoPlano || html.replace(/<[^>]+>/g,' ')], { type:'text/plain' })
+      })]);
+      return true;
+    }
+  }catch(e){ /* se intenta la vía clásica */ }
+  try{
+    const d = document.createElement('div');
+    d.contentEditable = 'true';
+    d.style.cssText = 'position:fixed;left:-99999px;top:0;white-space:pre-wrap';
+    d.innerHTML = html;
+    document.body.appendChild(d);
+    const r = document.createRange(); r.selectNodeContents(d);
+    const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    const ok = document.execCommand('copy');
+    s.removeAllRanges(); document.body.removeChild(d);
+    return ok;
+  }catch(e){ return false; }
+}
+function descargarDoc(nombre, html){
+  try{
+    const blob = new Blob(['﻿', html], { type:'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nombre; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1500);
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   6. GENERADORES DE ENTREGABLES
+   ══════════════════════════════════════════════════════════════════ */
+function escudoHTML(cfg){
+  const src = (typeof window !== 'undefined' && window.ESCUDO_MUNICIPAL) || '';
+  return src
+    ? '<img class="escudo" src="' + src + '" alt="Escudo del municipio de ' + esc(cfg.municipio) + '">'
+    : '<div class="escudo-alt">ESCUDO<br>MUNICIPAL</div>';
+}
+
+function pieInstitucional(cfg){
+  const l1 = ['Alcaldía Municipal de ' + cfg.municipio + ' — ' + cfg.departamento,
+              cfg.direccion, cfg.codigoPostal ? 'Código postal ' + cfg.codigoPostal : ''].filter(Boolean).join(' · ');
+  const l2 = [cfg.telefono ? 'Conmutador ' + cfg.telefono : '', cfg.correo, cfg.web].filter(Boolean).join(' · ');
+  return '<div class="pie">' + esc(l1) + '<br>' + esc(l2) + '</div>';
+}
+
+function membrete(cfg, titulo, sub){
+  return '<div class="membrete">' + escudoHTML(cfg) + '<div style="flex:1">' +
+    '<div style="font-family:Archivo,sans-serif;font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase">Alcaldía Municipal de ' + esc(cfg.municipio) + '</div>' +
+    (cfg.lema ? '<div style="font-family:Newsreader,serif;font-style:italic;font-size:11px;color:#B32074">«' + esc(cfg.lema) + '»</div>' : '') +
+    '<div style="font-size:12px;color:#33474e">' + esc(cfg.secretaria) + '</div>' +
+    '<div style="font-size:11.5px;color:#5d6f74">' + esc(cfg.dependencia) + ' — ' + esc(cfg.departamento) + '</div>' +
+    '</div></div>' +
+    '<h1>' + esc(titulo) + '</h1>' +
+    (sub ? '<div style="text-align:center;font-family:IBM Plex Mono,monospace;font-size:11px;color:#4a5a60;margin-bottom:8px">' + esc(sub) + '</div>' : '');
+}
+function ctrlDoc(cfg, codigo){
+  return '<div class="ctrl"><span>Código: ' + esc(cfg.codigoFormato) + '</span><span>Versión: 02</span><span>' + esc(codigo) + '</span><span>Generado: ' + fechaLarga(hoyISO()) + '</span></div>';
+}
+function anexoFotografico(evs, desde){
+  const fotos = evs.filter(e => e.tipo === 'foto' && e.dataUrl);
+  const otros = evs.filter(e => e.tipo !== 'foto' || !e.dataUrl);
+  let h = '';
+  if (fotos.length){
+    h += '<div class="anexo-grid">' + fotos.map((e,i) =>
+      '<figure><img src="' + e.dataUrl + '" alt="' + esc(e.nombre) + '"><figcaption><strong>Registro ' + (desde+i) + '.</strong> ' + esc(e.nombre) + (e.descripcion ? ' — ' + esc(e.descripcion) : '') + '</figcaption></figure>'
+    ).join('') + '</div>';
+  }
+  if (otros.length){
+    h += '<p style="font-family:IBM Plex Sans,sans-serif;font-size:12px;margin-top:8px"><strong>Soportes documentales anexos:</strong> ' +
+      otros.map(e => esc(e.nombre) + (e.descripcion ? ' (' + esc(e.descripcion) + ')' : '')).join(' · ') + '.</p>';
+  }
+  if (!h) h = '<p style="color:#7a8a90;font-style:italic">Sin evidencias cargadas para este ítem.</p>';
+  return h;
+}
+
+/* ─────────── 6.1 ACTA DE COMITÉ ─────────── */
+function construirActa(acta, st){
+  const cfg = st.config;
+  const o = obl(acta.obligacionId);
+  const evs = st.evidencias.filter(e => (acta.evidencias || []).includes(e.id));
+  const anio = (acta.fecha || hoyISO()).slice(0,4);
+  const nro = 'ACTA N.º ' + acta.consecutivo + '-' + anio;
+  const asis = acta.asistentes || [];
+  const comp = acta.compromisos || [];
+
+  let h = membrete(cfg, nro, acta.instancia);
+  h += ctrlDoc(cfg, nro);
+
+  h += '<table><tbody>' +
+    '<tr><th style="width:26%">Instancia</th><td>' + esc(acta.instancia) + '</td></tr>' +
+    '<tr><th>Fecha</th><td>' + diaSemana(acta.fecha) + ', ' + fechaLarga(acta.fecha) + '</td></tr>' +
+    '<tr><th>Hora</th><td>Inicio ' + esc(acta.horaInicio) + ' — Finalización ' + esc(acta.horaFin) + '</td></tr>' +
+    '<tr><th>Lugar</th><td>' + esc(acta.lugar) + '</td></tr>' +
+    '<tr><th>Modalidad</th><td>' + esc(acta.modalidad) + '</td></tr>' +
+    '<tr><th>Convoca</th><td>' + esc(acta.convoca) + '</td></tr>' +
+    '<tr><th>Obligación contractual</th><td>N.º ' + o.id + ' — ' + esc(o.corto) + '</td></tr>' +
+    '</tbody></table>';
+
+  h += '<h2>1. Objetivo de la sesión</h2><p>' + esc(acta.objetivo) + '</p>';
+
+  h += '<h2>2. Orden del día</h2><ol>' + (acta.ordenDia || []).map(p => '<li>' + esc(p) + '</li>').join('') + '</ol>';
+
+  h += '<h2>3. Verificación del quórum y asistentes</h2>';
+  h += '<p>Se verificó la asistencia de ' + enLetras(asis.length) + ' (' + asis.length + ') participantes, conforme a la planilla de asistencia que se anexa al presente documento.</p>';
+  h += '<table><thead><tr><th style="width:6%">N.º</th><th>Nombre</th><th>Cargo</th><th>Entidad</th><th style="width:16%">Firma</th></tr></thead><tbody>' +
+    (asis.length ? asis.map((a,i) => '<tr><td>' + (i+1) + '</td><td>' + esc(a.nombre) + '</td><td>' + esc(a.cargo) + '</td><td>' + esc(a.entidad) + '</td><td></td></tr>').join('')
+    : '<tr><td colspan="5" style="color:#7a8a90;font-style:italic">Ver planilla de asistencia anexa.</td></tr>') +
+    '</tbody></table>';
+
+  h += '<h2>4. Desarrollo de la sesión</h2>';
+  (acta.desarrollo || []).forEach(d => {
+    const titulo = (acta.ordenDia || [])[d.punto-1] || ('Punto ' + d.punto);
+    h += '<h3>4.' + d.punto + '. ' + esc(titulo) + '</h3><p>' + esc(d.texto) + '</p>';
+  });
+
+  h += '<h2>5. Compromisos</h2>';
+  h += '<table><thead><tr><th style="width:6%">N.º</th><th>Compromiso</th><th>Responsable</th><th>Entidad</th><th style="width:13%">Fecha límite</th><th style="width:12%">Estado</th></tr></thead><tbody>' +
+    (comp.length ? comp.map((c,i) => '<tr><td>' + (i+1) + '</td><td>' + esc(c.descripcion) + '</td><td>' + esc(c.responsable) + '</td><td>' + esc(c.entidad) + '</td><td>' + (c.fecha ? fechaLarga(c.fecha) : '—') + '</td><td>' + esc(c.estado) + '</td></tr>').join('')
+    : '<tr><td colspan="6" style="color:#7a8a90;font-style:italic">La sesión no generó compromisos.</td></tr>') +
+    '</tbody></table>';
+
+  h += '<h2>6. Conclusiones y cierre</h2><p>' + esc(acta.conclusiones) + '</p>';
+
+  h += '<h2 class="pg-break">7. Anexo fotográfico y documental</h2>' + anexoFotografico(evs, 1);
+
+  h += '<div class="firma"><div>' + esc(acta.elaboradaPor || cfg.contratista) + '<br><span style="color:#4a5a60">Secretaría Técnica — ' + esc(cfg.dependencia) + '</span></div>' +
+    '<div>' + esc(cfg.supervisor) + '<br><span style="color:#4a5a60">' + esc(cfg.cargoSupervisor) + '</span></div></div>';
+  h += pieInstitucional(cfg);
+
+  return { titulo:nro + ' — ' + acta.instancia, archivo:'Acta_' + acta.consecutivo + '_' + anio + '.doc', html:h };
+}
+
+/* ─────────── 6.2 INFORME MENSUAL DE EJECUCIÓN ─────────── */
+function construirInforme(mk, st){
+  const cfg = st.config;
+  const acts = st.actividades.filter(a => mesDe(a.fecha) === mk).sort((a,b) => a.fecha.localeCompare(b.fecha));
+  const actasMes = st.actas.filter(a => mesDe(a.fecha) === mk);
+  const evsDe = a => st.evidencias.filter(e => (a.evidencias || []).includes(e.id));
+  const totalEv = acts.reduce((n,a) => n + (a.evidencias || []).length, 0);
+  const cumplidas = OBLIGACIONES.filter(o => acts.filter(a => a.obligacionId === o.id).length >= o.meta).length;
+
+  let h = membrete(cfg, 'Informe mensual de ejecución contractual', 'Período: ' + mesLargo(mk));
+  h += ctrlDoc(cfg, 'Contrato ' + cfg.contrato);
+
+  h += '<table><tbody>' +
+    '<tr><th style="width:26%">Contratista</th><td>' + esc(cfg.contratista) + ' — ' + esc(cfg.cedula) + '</td></tr>' +
+    '<tr><th>Contrato N.º</th><td>' + esc(cfg.contrato) + '</td></tr>' +
+    '<tr><th>Objeto</th><td>' + esc(cfg.objeto) + '</td></tr>' +
+    '<tr><th>Período reportado</th><td>' + mesLargo(mk) + '</td></tr>' +
+    '<tr><th>Supervisor</th><td>' + esc(cfg.supervisor) + ' — ' + esc(cfg.cargoSupervisor) + '</td></tr>' +
+    '<tr><th>Valor a cobrar</th><td>' + esc(cfg.valorMes) + '</td></tr>' +
+    '</tbody></table>';
+
+  h += '<h2>1. Resumen ejecutivo del período</h2>';
+  h += '<p>Durante el período comprendido en ' + mesLargo(mk) + ' se ejecutaron ' + enLetras(acts.length) + ' (' + acts.length + ') actividades asociadas a las once (11) obligaciones contractuales, se levantaron ' + enLetras(actasMes.length) + ' (' + actasMes.length + ') actas de instancias de participación y se compilaron ' + totalEv + ' soportes de evidencia. ' + cumplidas + ' de 11 obligaciones alcanzaron la meta mensual programada.</p>';
+
+  h += '<table><thead><tr><th style="width:8%">N.º</th><th>Obligación contractual</th><th style="width:14%">Actividades</th><th style="width:12%">Evidencias</th><th style="width:14%">Cumplimiento</th></tr></thead><tbody>';
+  OBLIGACIONES.forEach(o => {
+    const sub = acts.filter(a => a.obligacionId === o.id);
+    const ev = sub.reduce((n,a) => n + (a.evidencias || []).length, 0);
+    const e = estadoSem(sub.length, o.meta);
+    h += '<tr><td style="text-align:center">' + o.id + '</td><td>' + esc(o.corto) + '</td><td style="text-align:center">' + sub.length + ' / ' + o.meta + '</td><td style="text-align:center">' + ev + '</td><td>' + e.p + '% — ' + e.label + '</td></tr>';
+  });
+  h += '</tbody></table>';
+
+  h += '<h2 class="pg-break">2. Desarrollo por obligación contractual</h2>';
+  OBLIGACIONES.forEach(o => {
+    const sub = acts.filter(a => a.obligacionId === o.id);
+    h += '<h3>Obligación N.º ' + o.id + '. ' + esc(o.titulo) + '</h3>';
+    if (!sub.length){
+      h += '<p style="color:#5d6f74;font-style:italic">Durante el período reportado no se registraron actividades asociadas a esta obligación.</p>';
+      return;
+    }
+    h += '<table><thead><tr><th style="width:12%">Fecha</th><th style="width:30%">Actividad</th><th>Descripción de la gestión</th><th style="width:10%">Soportes</th></tr></thead><tbody>';
+    sub.forEach(a => {
+      h += '<tr><td>' + fechaCorta(a.fecha) + '</td><td><strong>' + esc(a.titulo) + '</strong><br><span style="color:#5d6f74">' + esc(a.lugar) + '</span></td><td>' + esc(a.descripcion || a.notaCruda) + '</td><td style="text-align:center">' + (a.evidencias || []).length + '</td></tr>';
+    });
+    h += '</tbody></table>';
+    const evs = sub.flatMap(evsDe);
+    if (evs.length) h += anexoFotografico(evs, 1);
+  });
+
+  h += '<h2 class="pg-break">3. Certificación de cumplimiento</h2>';
+  h += '<p>El suscrito contratista certifica que las actividades relacionadas en el presente informe fueron ejecutadas de manera directa y personal durante ' + mesLargo(mk) + ', en cumplimiento de las obligaciones pactadas en el contrato ' + esc(cfg.contrato) + ', y que los soportes documentales y fotográficos anexos corresponden fielmente a la gestión reportada.</p>';
+  h += '<div class="nota">Este informe se presenta para efectos del trámite de cuenta de cobro correspondiente al período reportado, junto con la planilla de aportes a seguridad social y la certificación bancaria.</div>';
+  h += '<div style="margin-top:14px"><span class="sello">Para trámite de cuenta de cobro</span></div>';
+  h += '<div class="firma"><div>' + esc(cfg.contratista) + '<br><span style="color:#4a5a60">Contratista — ' + esc(cfg.cedula) + '</span></div>' +
+    '<div>' + esc(cfg.supervisor) + '<br><span style="color:#4a5a60">' + esc(cfg.cargoSupervisor) + ' — Supervisor del contrato</span></div></div>';
+  h += pieInstitucional(cfg);
+
+  return { titulo:'Informe de ejecución — ' + mesLargo(mk), archivo:'Informe_' + mk + '.doc', html:h };
+}
+
+/* ─────────── 6.3 DIAPOSITIVAS EJECUTIVAS ─────────── */
+function construirDiapositivas(mk, ids, st){
+  const cfg = st.config;
+  const acts = st.actividades.filter(a => mesDe(a.fecha) === mk);
+  const sel = OBLIGACIONES.filter(o => ids.includes(o.id));
+  const fotosDe = list => st.evidencias.filter(e => e.tipo === 'foto' && e.dataUrl && list.some(a => (a.evidencias || []).includes(e.id)));
+  const totalActs = acts.filter(a => ids.includes(a.obligacionId)).length;
+  const avanceGlobal = sel.length ? Math.round(sel.reduce((s,o) => s + estadoSem(acts.filter(a => a.obligacionId === o.id).length, o.meta).p, 0) / sel.length) : 0;
+
+  const slides = [];
+  slides.push({ t:'portada', titulo:'Avance de gestión territorial', sub:mesLargo(mk).toUpperCase(),
+    linea1:cfg.secretaria, linea2:cfg.dependencia, municipio:cfg.municipio, autor:cfg.contratista,
+    escudo:(typeof window !== 'undefined' && window.ESCUDO_MUNICIPAL) || '' });
+
+  slides.push({ t:'kpi', titulo:'El período en cifras', sub:mesLargo(mk),
+    kpis:[
+      { v:String(totalActs), l:'Actividades ejecutadas' },
+      { v:String(st.actas.filter(a => mesDe(a.fecha) === mk).length), l:'Actas levantadas' },
+      { v:String(fotosDe(acts).length), l:'Registros fotográficos' },
+      { v:avanceGlobal + '%', l:'Avance frente a la meta' }
+    ]});
+
+  slides.push({ t:'semaforo', titulo:'Semáforo de obligaciones', sub:'Cumplimiento frente a la meta mensual',
+    filas: sel.map(o => {
+      const n = acts.filter(a => a.obligacionId === o.id).length;
+      const e = estadoSem(n, o.meta);
+      return { cod:o.cod, nombre:o.corto, n, meta:o.meta, p:e.p, k:e.k, label:e.label };
+    })});
+
+  sel.forEach(o => {
+    const sub = acts.filter(a => a.obligacionId === o.id);
+    const e = estadoSem(sub.length, o.meta);
+    slides.push({ t:'obligacion', cod:o.cod, titulo:o.corto, sub:o.eje, n:sub.length, meta:o.meta, p:e.p, k:e.k,
+      logros: sub.slice(0,4).map(a => ({ fecha:fechaCorta(a.fecha), texto:a.titulo, lugar:a.lugar })),
+      fotos: fotosDe(sub).slice(0,3).map(f => ({ src:f.dataUrl, pie:f.nombre })) });
+  });
+
+  const comps = st.actas.flatMap(a => (a.compromisos || []).map(c => ({ ...c, instancia:a.instancia })));
+  if (comps.length) slides.push({ t:'compromisos', titulo:'Compromisos en seguimiento', sub:'Instancias coordinadas por la dependencia', filas:comps.slice(0,7) });
+
+  slides.push({ t:'cierre', titulo:'Próximos pasos', sub:mesLargo(mk),
+    puntos:[
+      'Sostener la periodicidad de las instancias que alcanzaron la meta del período.',
+      'Priorizar las obligaciones en rojo con cronograma de sesiones para el mes siguiente.',
+      'Cerrar los compromisos vencidos con requerimiento escrito a las entidades responsables.',
+      'Consolidar las evidencias faltantes antes del corte para la cuenta de cobro.'
+    ], autor:cfg.contratista, dependencia:cfg.dependencia });
+
+  return slides;
+}
+
+function diapositivasHTML(slides, st){
+  const P = { verde:'#117A54', ambar:'#B0760C', rojo:'#AB342D' };
+  const wrap = (inner, extra) => '<section class="slide-print" style="width:100%;max-width:1040px;margin:0 auto 26px;aspect-ratio:16/9;background:#fff;border:1px solid #C7D2D6;padding:42px 48px;position:relative;font-family:Arial,Helvetica,sans-serif;color:#141E1C;' + (extra||'') + '">' + inner + '</section>';
+  const pie = s => '<div style="position:absolute;left:48px;right:48px;bottom:20px;display:flex;justify-content:space-between;font-size:11px;color:#7a8a90;border-top:1px solid #DCE3E5;padding-top:8px"><span>' + esc(st.config.dependencia) + '</span><span>' + esc(s) + '</span></div>';
+  const h2 = (t,s) => '<div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#0E5A78;font-weight:700">' + esc(s||'') + '</div><h2 style="font-size:31px;margin:6px 0 20px;font-weight:700">' + esc(t) + '</h2>';
+
+  return slides.map(s => {
+    if (s.t === 'portada') return wrap(
+      '<div style="height:100%;display:flex;flex-direction:column;justify-content:center;border-left:8px solid #0E5A78;padding-left:30px">' +
+      (s.escudo ? '<img src="' + s.escudo + '" alt="" style="width:86px;height:auto;margin-bottom:16px">' : '') +
+      '<div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#B32074;font-weight:700">' + esc(s.sub) + '</div>' +
+      '<h1 style="font-size:46px;margin:12px 0;line-height:1.08">' + esc(s.titulo) + '</h1>' +
+      '<div style="font-size:15px;color:#33474e">' + esc(s.linea1) + '<br>' + esc(s.linea2) + '</div>' +
+      '<div style="margin-top:22px;font-size:13px;color:#7a8a90">Alcaldía Municipal de ' + esc(s.municipio) + ' · ' + esc(s.autor) + '</div></div>');
+    if (s.t === 'kpi') return wrap(h2(s.titulo, s.sub) +
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">' + s.kpis.map(k =>
+        '<div style="border:1px solid #C7D2D6;border-top:4px solid #0E5A78;padding:18px 16px"><div style="font-size:40px;font-weight:700;color:#0E5A78">' + esc(k.v) + '</div><div style="font-size:12px;color:#33474e;margin-top:4px">' + esc(k.l) + '</div></div>').join('') + '</div>' + pie('Cifras del período'));
+    if (s.t === 'semaforo') return wrap(h2(s.titulo, s.sub) +
+      '<table style="width:100%;border-collapse:collapse;font-size:13px">' + s.filas.map(f =>
+        '<tr><td style="padding:7px 8px;border-bottom:1px solid #E4EAEB;font-family:Consolas,monospace;color:#7a8a90;width:56px">' + esc(f.cod) + '</td>' +
+        '<td style="padding:7px 8px;border-bottom:1px solid #E4EAEB">' + esc(f.nombre) + '</td>' +
+        '<td style="padding:7px 8px;border-bottom:1px solid #E4EAEB;width:230px"><div style="background:#E9EEEF;height:9px;border-radius:9px"><div style="width:' + f.p + '%;background:' + P[f.k] + ';height:9px;border-radius:9px"></div></div></td>' +
+        '<td style="padding:7px 8px;border-bottom:1px solid #E4EAEB;width:96px;text-align:right;color:' + P[f.k] + ';font-weight:700">' + f.n + ' / ' + f.meta + '</td></tr>').join('') + '</table>' + pie('Semáforo de cumplimiento'));
+    if (s.t === 'obligacion') return wrap(h2(s.titulo, s.cod + ' · ' + s.sub) +
+      '<div style="display:grid;grid-template-columns:1.25fr 1fr;gap:26px">' +
+      '<div><div style="font-size:12px;color:#7a8a90;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Logros del período</div>' +
+      (s.logros.length ? '<ul style="margin:0;padding-left:18px;font-size:14px;line-height:1.5">' + s.logros.map(l => '<li style="margin-bottom:7px"><strong>' + esc(l.fecha) + '</strong> — ' + esc(l.texto) + '</li>').join('') + '</ul>' : '<div style="color:#AB342D;font-size:14px">Sin actividades registradas en el período.</div>') +
+      '<div style="margin-top:18px;display:flex;align-items:baseline;gap:10px"><span style="font-size:36px;font-weight:700;color:' + P[s.k] + '">' + s.p + '%</span><span style="font-size:13px;color:#33474e">' + s.n + ' de ' + s.meta + ' actividades programadas</span></div></div>' +
+      '<div style="display:grid;gap:8px;align-content:start">' + (s.fotos.length ? s.fotos.map(f =>
+        '<figure style="margin:0"><img src="' + f.src + '" style="width:100%;height:96px;object-fit:cover;border:1px solid #C7D2D6"><figcaption style="font-size:10px;color:#7a8a90;padding-top:3px">' + esc(f.pie) + '</figcaption></figure>').join('')
+        : '<div style="border:1px dashed #C7D2D6;padding:22px;text-align:center;color:#7a8a90;font-size:12px">Sin registro fotográfico</div>') + '</div></div>' + pie(s.cod));
+    if (s.t === 'compromisos') return wrap(h2(s.titulo, s.sub) +
+      '<table style="width:100%;border-collapse:collapse;font-size:12.5px"><tr><th style="text-align:left;padding:6px;background:#EAF1F4">Compromiso</th><th style="text-align:left;padding:6px;background:#EAF1F4">Responsable</th><th style="text-align:left;padding:6px;background:#EAF1F4;width:110px">Fecha</th><th style="text-align:left;padding:6px;background:#EAF1F4;width:96px">Estado</th></tr>' +
+      s.filas.map(c => '<tr><td style="padding:6px;border-bottom:1px solid #E4EAEB">' + esc(c.descripcion) + '</td><td style="padding:6px;border-bottom:1px solid #E4EAEB">' + esc(c.entidad) + '</td><td style="padding:6px;border-bottom:1px solid #E4EAEB">' + (c.fecha ? fechaCorta(c.fecha) : '—') + '</td><td style="padding:6px;border-bottom:1px solid #E4EAEB">' + esc(c.estado) + '</td></tr>').join('') + '</table>' + pie('Seguimiento a compromisos'));
+    return wrap(h2(s.titulo, s.sub) +
+      '<ul style="font-size:15px;line-height:1.6;padding-left:18px">' + s.puntos.map(p => '<li style="margin-bottom:9px">' + esc(p) + '</li>').join('') + '</ul>' +
+      '<div style="position:absolute;left:48px;bottom:56px;font-size:13px;color:#33474e">' + esc(s.autor) + ' — ' + esc(s.dependencia) + '</div>' + pie('Cierre'));
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   7. PRIMITIVAS DE INTERFAZ
+   ══════════════════════════════════════════════════════════════════ */
+const Ctx = React.createContext(null);
+const useApp = () => React.useContext(Ctx);
+
+const pascal = n => String(n).split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
+function Icon({ n, s = 20, className = '', stroke = 1.75 }){
+  const lib = (window.lucide && (window.lucide.icons || window.lucide)) || {};
+  let node = lib[pascal(n)] || lib[n];
+  if (node && node[0] === 'svg') node = node[2];
+  const hijos = Array.isArray(node) ? node : null;
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={s} height={s} viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round"
+         className={className} aria-hidden="true" focusable="false">
+      {hijos
+        ? hijos.map(([tag, attrs], i) => React.createElement(tag, { key:i, ...attrs }))
+        : <circle cx="12" cy="12" r="8" />}
+    </svg>
+  );
+}
+
+const Chip = ({ children, tone = 'neutro', className = '' }) => {
+  const t = { neutro:'bg-surface2 text-ink2 border-line2', azure:'bg-azuresoft text-azure border-azure/30',
+    fucsia:'bg-fucsiasoft text-fucsia border-fucsia/30', verde:'bg-verdesoft text-verde border-verde/30',
+    ambar:'bg-ambarsoft text-ambar border-ambar/30', rojo:'bg-rojosoft text-rojo border-rojo/30' }[tone];
+  return <span className={cx('inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-display font-semibold uppercase tracking-wide', t, className)}>{children}</span>;
+};
+
+const Card = ({ children, className = '', ...p }) => (
+  <div {...p} className={cx('rounded-2xl border border-line bg-surface shadow-card', className)}>{children}</div>
+);
+
+const Campo = ({ label, hint, children, req, className = '' }) => (
+  <label className={cx('block', className)}>
+    <span className="eyebrow text-ink2 flex items-center gap-1.5">{label}{req && <span className="text-fucsia">*</span>}</span>
+    <div className="mt-1.5">{children}</div>
+    {hint && <span className="mt-1 block text-[12px] leading-snug text-ink3">{hint}</span>}
+  </label>
+);
+
+function Boton({ children, icon, variant = 'primario', className = '', ...p }){
+  const v = {
+    primario:'bg-azure text-paper border-azure hover:brightness-110',
+    fucsia:'bg-fucsia text-paper border-fucsia hover:brightness-110',
+    suave:'bg-surface2 text-ink border-line2 hover:bg-surface3',
+    linea:'bg-surface text-ink border-line2 hover:bg-surface2',
+    fantasma:'bg-transparent text-ink2 border-transparent hover:bg-surface2'
+  }[variant];
+  return (
+    <button {...p} className={cx('inline-flex items-center justify-center gap-2 rounded-xl border px-3.5 py-2.5 font-display text-[13.5px] font-semibold transition disabled:opacity-40 disabled:pointer-events-none', v, className)}>
+      {icon && <Icon n={icon} s={17} />}{children}
+    </button>
+  );
+}
+
+function Hoja({ abierta, onCerrar, titulo, sub, children, ancho = 'max-w-2xl' }){
+  useEffect(() => {
+    if (!abierta) return;
+    const h = e => { if (e.key === 'Escape') onCerrar(); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [abierta, onCerrar]);
+  if (!abierta) return null;
+  return (
+    <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center" role="dialog" aria-modal="true" aria-label={titulo}>
+      <div className="absolute inset-0 bg-ink/40 backdrop-blur-[2px]" onClick={onCerrar} />
+      <div className={cx('relative w-full anim-in bg-paper shadow-pop rounded-t-3xl sm:rounded-2xl border border-line flex flex-col', ancho)}
+           style={{ maxHeight:'min(90vh, 900px)' }}>
+        <div className="flex items-start gap-3 border-b border-line px-4 py-3.5 sm:px-5">
+          <div className="min-w-0 flex-1">
+            <h2 className="font-display text-[16px] font-bold leading-tight">{titulo}</h2>
+            {sub && <p className="mt-0.5 text-[12.5px] text-ink3 leading-snug">{sub}</p>}
+          </div>
+          <button onClick={onCerrar} aria-label="Cerrar" className="rounded-lg p-1.5 text-ink2 hover:bg-surface2"><Icon n="x" s={20} /></button>
+        </div>
+        <div className="overflow-y-auto px-4 py-4 sm:px-5">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function Barra({ p, k = 'azure', alto = 'h-2' }){
+  const c = { azure:'bg-azure', verde:'bg-verde', ambar:'bg-ambar', rojo:'bg-rojo' }[k];
+  return (
+    <div className={cx('w-full overflow-hidden rounded-full bg-surface3', alto)}>
+      <div className={cx('h-full rounded-full transition-all duration-500', c)} style={{ width:Math.max(p, 2) + '%' }} />
+    </div>
+  );
+}
+
+const Vacio = ({ icon, titulo, texto, accion }) => (
+  <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-line2 px-5 py-9 text-center">
+    <Icon n={icon} s={26} className="text-ink3" />
+    <p className="font-display text-[14.5px] font-semibold">{titulo}</p>
+    <p className="max-w-sm text-[13px] leading-relaxed text-ink3">{texto}</p>
+    {accion}
+  </div>
+);
+
+/* ══════════════════════════════════════════════════════════════════
+   8. PANTALLA · INICIO
+      Feed de evidencias para revisar con el pulgar, con el semáforo
+      de las 11 obligaciones siempre visible en la banda superior.
+   ══════════════════════════════════════════════════════════════════ */
+function TarjetaActividad({ a, estado, fotos, extras, onAbrir, onActa }){
+  const o = obl(a.obligacionId);
+  return (
+    <Card className="overflow-hidden rail" style={{ '--rail':SEM[estado.k].rail }}>
+      <button onClick={onAbrir} className="block w-full text-left">
+        <div className="flex items-center gap-2.5 py-3 pl-4 pr-3.5">
+          <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-surface2 text-ink2"><Icon n={o.icon} s={18} /></span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono text-[11px] text-ink3">{o.cod}</span>
+              <span className={cx('h-2 w-2 rounded-full', SEM[estado.k].dot)} />
+              <span className="truncate text-[11.5px] text-ink3">{estado.label}</span>
+            </div>
+            <p className="truncate font-display text-[13.5px] font-semibold">{o.corto}</p>
+          </div>
+          <span className="flex-none text-[11.5px] text-ink3">{fechaRelativa(a.fecha)}</span>
+        </div>
+
+        {fotos.length > 0 && (
+          <div className="relative">
+            <img src={fotos[0].dataUrl} alt={fotos[0].nombre} className="h-52 w-full bg-surface2 object-cover sm:h-64" />
+            {fotos.length > 1 && (
+              <span className="absolute bottom-2 right-2 rounded-lg bg-ink/70 px-2 py-1 font-mono text-[11px] text-paper">+{fotos.length - 1}</span>
+            )}
+          </div>
+        )}
+
+        <div className="py-3 pl-4 pr-3.5">
+          <p className="font-display text-[15px] font-semibold leading-snug">{a.titulo}</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-ink2"
+             style={{ display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
+            {a.descripcion || a.notaCruda}
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-ink3">
+            {a.lugar && <span className="inline-flex items-center gap-1"><Icon n="map-pin" s={12} />{a.lugar}</span>}
+            {a.participantes > 0 && <span className="inline-flex items-center gap-1"><Icon n="users" s={12} />{a.participantes}</span>}
+            {extras > 0 && <span className="inline-flex items-center gap-1"><Icon n="paperclip" s={12} />{extras} soporte{extras === 1 ? '' : 's'}</span>}
+          </div>
+        </div>
+      </button>
+      <div className="flex divide-x divide-line border-t border-line">
+        <button onClick={onAbrir} className="flex flex-1 items-center justify-center gap-1.5 py-3 text-[12.5px] font-semibold text-ink2 hover:bg-surface2">
+          <Icon n="maximize-2" s={15} />Ver
+        </button>
+        <button onClick={onActa} className="flex flex-1 items-center justify-center gap-1.5 py-3 text-[12.5px] font-semibold text-azure hover:bg-azuresoft">
+          <Icon n="file-plus" s={15} />Acta
+        </button>
+      </div>
+    </Card>
+  );
+}
+
+function Inicio({ mes, setMes }){
+  const { st, ir } = useApp();
+  const [detalle, setDetalle] = useState(null);
+  const [actividad, setActividad] = useState(null);
+  const [verTodo, setVerTodo] = useState(false);
+
+  const acts = useMemo(() => st.actividades.filter(a => mesDe(a.fecha) === mes), [st.actividades, mes]);
+  const filas = useMemo(() => OBLIGACIONES.map(o => {
+    const sub = acts.filter(a => a.obligacionId === o.id).sort((a,b) => b.fecha.localeCompare(a.fecha));
+    return { o, sub, e:estadoSem(sub.length, o.meta), ev:sub.reduce((n,a) => n + (a.evidencias||[]).length, 0) };
+  }), [acts]);
+  const porObligacion = useMemo(() => {
+    const m = {};
+    filas.forEach(f => { m[f.o.id] = f.e; });
+    return m;
+  }, [filas]);
+
+  const feed = useMemo(() => [...acts].sort((a,b) =>
+    (b.fecha + (b.hora || '')).localeCompare(a.fecha + (a.hora || ''))), [acts]);
+  const evDe = useCallback(a => st.evidencias.filter(e => (a.evidencias || []).includes(e.id)), [st.evidencias]);
+
+  const totalEv = filas.reduce((n,f) => n + f.ev, 0);
+  const global = Math.round(filas.reduce((s,f) => s + f.e.p, 0) / 11);
+  const vencidos = useMemo(() => st.actas.flatMap(a => (a.compromisos || []).map(c => ({ ...c, instancia:a.instancia })))
+    .filter(c => c.estado !== 'Cumplido' && c.fecha && c.fecha < hoyISO()), [st.actas]);
+  const enRojo = filas.filter(f => f.e.k === 'rojo');
+  const abrirActa = a => ir('actas', { desdeActividad:a.id });
+
+  return (
+    <div className="space-y-4">
+      {/* Avance: visible al abrir la app, sin un solo toque */}
+      <Card className="overflow-hidden">
+        <div className="flex items-center justify-between gap-3 px-4 py-3">
+          <div className="min-w-0">
+            <p className="eyebrow text-azure first-letter:uppercase">{mesLargo(mes)}</p>
+            <p className="mt-0.5 font-display text-[13.5px] font-semibold">
+              <span className="text-[24px] leading-none tnum">{acts.length}</span>
+              <span className="text-ink2"> actividades · {totalEv} evidencias</span>
+            </p>
+          </div>
+          <button onClick={() => setVerTodo(true)} className="flex-none rounded-xl border border-line2 px-3 py-2 text-center hover:bg-surface2">
+            <div className="font-display text-[20px] font-bold leading-none tnum text-azure">{global}%</div>
+            <div className="text-[10.5px] text-ink3">avance</div>
+          </button>
+        </div>
+        <div className="flex gap-1.5 overflow-x-auto px-4 pb-3.5" style={{ scrollbarWidth:'thin' }}>
+          {filas.map(({ o, sub, e }) => (
+            <button key={o.id} onClick={() => setDetalle({ o, sub, e })}
+              className="flex flex-none items-center gap-1.5 rounded-full border border-line2 bg-surface px-2.5 py-1.5 hover:bg-surface2">
+              <span className={cx('h-2 w-2 rounded-full', SEM[e.k].dot)} />
+              <span className="font-mono text-[11.5px] tnum text-ink2">{o.cod}</span>
+              <span className="font-mono text-[11px] tnum text-ink3">{sub.length}/{o.meta}</span>
+            </button>
+          ))}
+          <button onClick={() => setVerTodo(true)} className="flex flex-none items-center gap-1 rounded-full border border-azure/40 bg-azuresoft px-2.5 py-1.5 font-display text-[11.5px] font-semibold text-azure">
+            Ver todo <Icon n="chevron-right" s={13} />
+          </button>
+        </div>
+      </Card>
+
+      {(vencidos.length > 0 || enRojo.length > 0) && (
+        <Card className="border-ambar/40 bg-ambarsoft/50 p-4">
+          <div className="flex items-center gap-2">
+            <Icon n="alert-triangle" s={17} className="text-ambar" />
+            <h3 className="font-display text-[14px] font-bold">Requiere tu atención</h3>
+          </div>
+          <ul className="mt-2.5 space-y-1.5 text-[13px] leading-snug">
+            {vencidos.slice(0,2).map(c => (
+              <li key={c.id} className="flex gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 flex-none rounded-full bg-rojo" />
+                <span>Compromiso vencido el {fechaCorta(c.fecha)} — <strong>{c.entidad}</strong>: {c.descripcion}</span>
+              </li>
+            ))}
+            {enRojo.length > 0 && (
+              <li className="flex gap-2">
+                <span className="mt-1.5 h-1.5 w-1.5 flex-none rounded-full bg-ambar" />
+                <span>{enRojo.length === 1 ? 'La obligación' : 'Las obligaciones'} {enRojo.map(f => f.o.cod).join(', ')} {enRojo.length === 1 ? 'está' : 'están'} por debajo del 40% de la meta del mes.</span>
+              </li>
+            )}
+          </ul>
+        </Card>
+      )}
+
+      {feed.length === 0
+        ? <Vacio icon="camera" titulo="Sin registros este mes" texto="Toca el botón + y captura la primera evidencia: una foto o una nota dictada bastan."
+            accion={<Boton icon="plus" onClick={() => ir('capturar')}>Capturar ahora</Boton>} />
+        : <div className="space-y-3">
+            <h3 className="eyebrow px-1 text-ink2">Evidencias capturadas</h3>
+            {feed.map(a => {
+              const evs = evDe(a);
+              const fotos = evs.filter(e => e.tipo === 'foto' && e.dataUrl);
+              return (
+                <TarjetaActividad key={a.id} a={a} estado={porObligacion[a.obligacionId] || estadoSem(0,1)}
+                  fotos={fotos} extras={evs.length - fotos.length}
+                  onAbrir={() => setActividad(a)} onActa={() => abrirActa(a)} />
+              );
+            })}
+          </div>}
+
+      <Hoja abierta={verTodo} onCerrar={() => setVerTodo(false)} ancho="max-w-3xl"
+            titulo="Semáforo de las 11 obligaciones" sub={`${mesLargo(mes)} · ${global}% de avance frente a las metas`}>
+        <div className="mb-3 flex items-center gap-3 text-[11.5px] text-ink3">
+          {[['verde','Cumplida'],['ambar','En avance'],['rojo','En riesgo']].map(([k,l]) => (
+            <span key={k} className="flex items-center gap-1"><span className={cx('h-2 w-2 rounded-full', SEM[k].dot)} />{l}</span>
+          ))}
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {filas.map(({ o, sub, e, ev }) => (
+            <button key={o.id} onClick={() => { setVerTodo(false); setDetalle({ o, sub, e }); }}
+              className="rail w-full rounded-xl border border-line bg-surface p-3 pl-4 text-left transition hover:bg-surface2"
+              style={{ '--rail':SEM[e.k].rail }}>
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-surface2 text-ink2"><Icon n={o.icon} s={17} /></span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[11px] text-ink3">{o.cod}</span>
+                    <Chip tone={e.k}>{e.label}</Chip>
+                  </div>
+                  <p className="mt-0.5 truncate font-display text-[14.5px] font-semibold">{o.corto}</p>
+                  <div className="mt-2 flex items-center gap-2.5">
+                    <Barra p={e.p} k={e.k} alto="h-1.5" />
+                    <span className="flex-none font-mono text-[11.5px] tnum text-ink2">{sub.length}/{o.meta}</span>
+                  </div>
+                  <p className="mt-1.5 text-[11.5px] text-ink3">
+                    {sub.length ? `Último registro: ${fechaCorta(sub[0].fecha)} · ${ev} evidencia${ev === 1 ? '' : 's'}` : 'Sin actividades este mes'}
+                  </p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </Hoja>
+
+      <Hoja abierta={!!detalle} onCerrar={() => setDetalle(null)}
+            titulo={detalle ? `${detalle.o.cod} · ${detalle.o.corto}` : ''} sub={detalle ? detalle.o.eje : ''}>
+        {detalle && (
+          <div className="space-y-3">
+            <p className="rounded-xl border border-line bg-surface2 p-3 text-[13px] leading-relaxed text-ink2">{detalle.o.titulo}</p>
+            <div className="flex items-center gap-3">
+              <Barra p={detalle.e.p} k={detalle.e.k} />
+              <span className="flex-none font-mono text-[12px] tnum">{detalle.e.p}%</span>
+            </div>
+            {detalle.sub.length === 0
+              ? <Vacio icon="calendar-off" titulo="Sin actividades en el período" texto="Captura una evidencia para que esta obligación deje de estar en rojo."
+                  accion={<Boton icon="plus" onClick={() => { const id = detalle.o.id; setDetalle(null); ir('capturar', { obligacionId:id }); }}>Capturar ahora</Boton>} />
+              : detalle.sub.map(a => (
+                <button key={a.id} onClick={() => { setDetalle(null); setActividad(a); }} className="w-full rounded-xl border border-line p-3 text-left hover:bg-surface2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-[11.5px] text-ink3">{fechaCorta(a.fecha)} · {a.hora}</span>
+                    <Chip>{(a.evidencias || []).length} evid.</Chip>
+                  </div>
+                  <p className="mt-1 font-display text-[14px] font-semibold leading-snug">{a.titulo}</p>
+                </button>
+              ))}
+          </div>
+        )}
+      </Hoja>
+
+      <Hoja abierta={!!actividad} onCerrar={() => setActividad(null)}
+            titulo={actividad ? actividad.titulo : ''}
+            sub={actividad ? `${obl(actividad.obligacionId).cod} · ${fechaLarga(actividad.fecha)} · ${actividad.hora || ''}` : ''}>
+        {actividad && (() => {
+          const evs = evDe(actividad);
+          const fotos = evs.filter(e => e.tipo === 'foto' && e.dataUrl);
+          return (
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-1.5">
+                <Chip tone="azure">{actividad.tipo}</Chip>
+                {actividad.lugar && <Chip><Icon n="map-pin" s={11} />{actividad.lugar}</Chip>}
+                {actividad.participantes > 0 && <Chip><Icon n="users" s={11} />{actividad.participantes}</Chip>}
+                {actividad.radicado && <Chip tone="fucsia">{actividad.radicado}</Chip>}
+              </div>
+              {fotos.length > 0 && (
+                <div className="grid grid-cols-2 gap-2">
+                  {fotos.map(e => (
+                    <figure key={e.id} className="overflow-hidden rounded-xl border border-line">
+                      <img src={e.dataUrl} alt={e.nombre} className="h-32 w-full object-cover" />
+                      <figcaption className="px-2 py-1.5 text-[11px] text-ink3">{e.nombre}</figcaption>
+                    </figure>
+                  ))}
+                </div>
+              )}
+              <div>
+                <p className="eyebrow mb-1 text-ink2">Redacción institucional</p>
+                <p className="rounded-xl border border-line bg-surface p-3 text-[13.5px] leading-relaxed">{actividad.descripcion}</p>
+              </div>
+              {actividad.notaCruda && (
+                <div>
+                  <p className="eyebrow mb-1 text-ink2">Nota de campo original</p>
+                  <p className="rounded-xl border border-dashed border-line2 p-3 text-[13px] italic leading-relaxed text-ink3">«{actividad.notaCruda}»</p>
+                </div>
+              )}
+              <Boton icon="file-plus" className="w-full" onClick={() => { const a = actividad; setActividad(null); abrirActa(a); }}>Crear acta de esta actividad</Boton>
+            </div>
+          );
+        })()}
+      </Hoja>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   9. PANTALLA · CAPTURA RÁPIDA
+      Voz y cámara primero. Escribir es opcional: la fecha, la hora y la
+      obligación más frecuente vienen puestas, y el resto se elige con
+      tarjetas y chips. Tres toques: (+) → Grabar o Foto → Guardar.
+   ══════════════════════════════════════════════════════════════════ */
+function BotonGigante({ icon, titulo, sub, tono = 'azure', activo, ...p }){
+  const t = activo
+    ? 'border-fucsia bg-fucsia text-paper'
+    : tono === 'fucsia'
+      ? 'border-fucsia/40 bg-fucsiasoft text-fucsia hover:brightness-105'
+      : 'border-azure/40 bg-azuresoft text-azure hover:brightness-105';
+  return (
+    <button {...p} className={cx('flex min-h-[124px] flex-1 flex-col items-center justify-center gap-2 rounded-2xl border-2 px-3 py-4 transition active:scale-[0.98]', t)}>
+      <Icon n={icon} s={34} stroke={1.6} className={activo ? 'rec' : ''} />
+      <span className="font-display text-[15px] font-bold leading-none">{titulo}</span>
+      <span className="text-[11.5px] leading-tight opacity-80">{sub}</span>
+    </button>
+  );
+}
+
+const ChipSel = ({ activo, children, ...p }) => (
+  <button {...p} className={cx('rounded-xl border px-3 py-2.5 text-left font-display text-[13px] font-semibold transition',
+    activo ? 'border-azure bg-azure text-paper' : 'border-line2 bg-surface text-ink2 hover:bg-surface2')}>
+    {children}
+  </button>
+);
+
+function Capturar({ prefill, limpiarPrefill }){
+  const { st, setSt, toast, ir } = useApp();
+
+  const sugerido = useMemo(() => sugerirContexto(st.actividades), [st.actividades]);
+  const nuevoForm = useCallback((base) => ({
+    obligacionId: sugerido.obligacionId,
+    tipo: sugerido.tipo,
+    instancia: sugerido.instancia,
+    lugar: sugerido.lugar,
+    titulo:'', fecha:hoyISO(), hora:new Date().toTimeString().slice(0,5),
+    participantes:0, radicado:'', notaCruda:'', descripcion:'',
+    ...(base || {})
+  }), [sugerido]);
+
+  const [f, setF] = useState(nuevoForm);
+  const [evs, setEvs] = useState([]);
+  const [grabando, setGrabando] = useState(false);
+  const [parcial, setParcial] = useState('');
+  const [cargando, setCargando] = useState(false);
+  const [detalles, setDetalles] = useState(false);
+  const [lugarLibre, setLugarLibre] = useState(false);
+
+  const recRef = useRef(null);
+  const baseRef = useRef('');
+  const fRef = useRef(f); fRef.current = f;
+  const evsRef = useRef(evs); evsRef.current = evs;
+  const fotoRef = useRef(null);
+  const docRef = useRef(null);
+
+  const soportaVoz = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  const up = (k,v) => setF(p => ({ ...p, [k]:v }));
+  const o = obl(f.obligacionId);
+  const espacios = useMemo(() => instanciasFrecuentes(st.actividades, f.obligacionId), [st.actividades, f.obligacionId]);
+  const lugares = useMemo(() => lugaresFrecuentes(st.actividades, f.obligacionId), [st.actividades, f.obligacionId]);
+
+  useEffect(() => {
+    if (!prefill) return;
+    setF(p => ({ ...p, ...prefill }));
+    limpiarPrefill();
+  }, [prefill]);
+
+  useEffect(() => () => { try{ recRef.current && recRef.current.abort(); }catch(e){} }, []);
+
+  function redactarDesde(estado, lista){
+    return redactarInstitucional(estado.notaCruda, {
+      obligacionId:estado.obligacionId, tipo:estado.tipo, fecha:estado.fecha, lugar:estado.lugar,
+      participantes:Number(estado.participantes) || 0, evidencias:(lista || []).length, instancia:estado.instancia
+    });
+  }
+
+  /* ── Voz ─────────────────────────────────────────────────────────
+     continuous:false — el dictado se cierra solo con la pausa, así el
+     tercer toque es Guardar y no «detener». */
+  function alternarVoz(){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR){ setDetalles(true); toast('Este navegador no dicta; escribe la nota en Más detalles.', 'ambar'); return; }
+    if (grabando){ try{ recRef.current && recRef.current.stop(); }catch(e){} return; }
+    try{
+      const r = new SR();
+      r.lang = 'es-CO'; r.continuous = false; r.interimResults = true;
+      baseRef.current = f.notaCruda;
+      r.onresult = e => {
+        let fin = '', prov = '';
+        for (let i = 0; i < e.results.length; i++){
+          const t = e.results[i][0].transcript;
+          if (e.results[i].isFinal) fin += t + ' '; else prov += t;
+        }
+        setParcial(prov);
+        if (fin) setF(p => ({ ...p, notaCruda:(baseRef.current + ' ' + fin).trim() }));
+      };
+      r.onerror = ev => {
+        setGrabando(false); setParcial('');
+        if (ev && ev.error === 'not-allowed') toast('El micrófono está bloqueado para este sitio.', 'rojo');
+        else if (ev && ev.error !== 'aborted' && ev.error !== 'no-speech') toast('No se pudo capturar el audio.', 'rojo');
+      };
+      r.onend = () => {
+        setGrabando(false); setParcial('');
+        setTimeout(() => {
+          const estado = fRef.current;
+          if (!estado.notaCruda.trim()) return;
+          setF(p => ({ ...p, descripcion:redactarDesde(estado, evsRef.current) }));
+          toast('Nota dictada y redactada. Revisa y guarda.', 'verde');
+        }, 60);
+      };
+      recRef.current = r; r.start(); setGrabando(true);
+    }catch(e){ toast('No se pudo iniciar el dictado.', 'rojo'); }
+  }
+
+  /* ── Cámara y adjuntos ───────────────────────────────────────── */
+  async function agregarArchivos(lista, tipo){
+    setCargando(true);
+    const nuevos = [];
+    for (const file of Array.from(lista).slice(0,8)){
+      if (tipo === 'foto' && file.type.startsWith('image/')){
+        const r = await comprimirImagen(file);
+        nuevos.push({ id:uid('ev'), nombre:'Registro fotográfico', descripcion:'', tipo:'foto',
+          dataUrl:r ? r.dataUrl : null, creadoEn:new Date().toISOString() });
+      } else {
+        nuevos.push({ id:uid('ev'), nombre:file.name.slice(0,70), descripcion:Math.round(file.size/1024) + ' KB',
+          tipo:file.type.includes('pdf') ? 'pdf' : 'archivo', dataUrl:null, creadoEn:new Date().toISOString() });
+      }
+    }
+    setEvs(p => [...p, ...nuevos]);
+    setCargando(false);
+    if (nuevos.length) toast(`${nuevos.length} evidencia${nuevos.length === 1 ? '' : 's'} lista${nuevos.length === 1 ? '' : 's'}. Toca Guardar.`, 'verde');
+  }
+
+  function guardar(){
+    if (!f.notaCruda.trim() && !evs.length && !f.titulo.trim()){
+      toast('Graba una nota o toma una foto antes de guardar.', 'ambar');
+      return;
+    }
+    const descripcion = f.descripcion.trim() || redactarDesde(f, evs);
+    const act = {
+      id:uid('act'), obligacionId:Number(f.obligacionId), tipo:f.tipo, instancia:f.instancia,
+      titulo:f.titulo.trim() || (f.instancia ? f.instancia : `${f.tipo} — ${fechaCorta(f.fecha)}`),
+      fecha:f.fecha, hora:f.hora, lugar:f.lugar, participantes:Number(f.participantes) || 0,
+      radicado:f.radicado, notaCruda:f.notaCruda, descripcion,
+      evidencias:evs.map(e => e.id), creadoEn:new Date().toISOString()
+    };
+    setSt(p => ({ ...p,
+      actividades:[act, ...p.actividades],
+      evidencias:[...p.evidencias, ...evs.map(e => ({ ...e, actividadId:act.id }))] }));
+    setF(nuevoForm()); setEvs([]); setDetalles(false); setLugarLibre(false);
+    toast(`Registrado en ${obl(act.obligacionId).cod}. Ya cuenta en el semáforo.`, 'verde');
+    ir('inicio');
+  }
+
+  const listo = !!(f.notaCruda.trim() || evs.length || f.titulo.trim());
+
+  return (
+    <div className="space-y-4">
+      {/* Fecha y hora puestas por la app */}
+      <div className="flex items-center gap-2 rounded-xl border border-line bg-surface2 px-3.5 py-2.5">
+        <Icon n="clock" s={16} className="flex-none text-ink3" />
+        <p className="flex-1 text-[12.5px] leading-snug text-ink2">
+          <strong className="text-ink">{fechaRelativa(f.fecha)}</strong>, {fechaLarga(f.fecha)} · {f.hora}
+        </p>
+        <button onClick={() => setDetalles(true)} className="flex-none font-display text-[12px] font-semibold text-azure">Cambiar</button>
+      </div>
+
+      {/* Los dos botones que importan */}
+      <div className="flex gap-2.5">
+        <BotonGigante icon={grabando ? 'square' : 'mic'} tono="fucsia" activo={grabando}
+          titulo={grabando ? 'Escuchando…' : 'Grabar nota'}
+          sub={grabando ? 'Termina al hacer pausa' : soportaVoz ? 'Dicta y se redacta sola' : 'Escribe en Más detalles'}
+          onClick={alternarVoz} aria-pressed={grabando} />
+        <BotonGigante icon="camera" titulo="Tomar foto" sub={evs.length ? `${evs.length} en esta captura` : 'Acta, asistencia, evento'}
+          onClick={() => fotoRef.current.click()} />
+      </div>
+      <input ref={fotoRef} id="cap-fotos" type="file" accept="image/*" capture="environment" multiple hidden
+             onChange={e => { agregarArchivos(e.target.files, 'foto'); e.target.value = ''; }} />
+      <input ref={docRef} id="cap-docs" type="file" accept=".pdf,.doc,.docx,.xlsx,image/*" multiple hidden
+             onChange={e => { agregarArchivos(e.target.files, 'doc'); e.target.value = ''; }} />
+
+      {(grabando || parcial) && (
+        <div className="rounded-xl border border-fucsia/40 bg-fucsiasoft px-3.5 py-3">
+          <p className="eyebrow text-fucsia">Escuchando</p>
+          <p className="mt-1 text-[13.5px] leading-relaxed text-ink">{f.notaCruda} <span className="text-ink3">{parcial}</span></p>
+        </div>
+      )}
+
+      {cargando && <p className="px-1 text-[12.5px] text-ink3">Comprimiendo fotos…</p>}
+
+      {evs.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth:'thin' }}>
+          {evs.map(e => (
+            <div key={e.id} className="relative h-20 w-20 flex-none overflow-hidden rounded-xl border border-line bg-surface2">
+              {e.dataUrl
+                ? <img src={e.dataUrl} alt={e.nombre} className="h-full w-full object-cover" />
+                : <div className="flex h-full w-full items-center justify-center text-ink3"><Icon n="file-text" s={22} /></div>}
+              <button onClick={() => setEvs(p => p.filter(x => x.id !== e.id))} aria-label="Quitar evidencia"
+                className="absolute right-1 top-1 rounded-full bg-ink/70 p-1 text-paper"><Icon n="x" s={12} /></button>
+            </div>
+          ))}
+          <button onClick={() => docRef.current.click()}
+            className="flex h-20 w-20 flex-none flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-line2 text-ink3 hover:bg-surface2">
+            <Icon n="paperclip" s={18} /><span className="text-[10.5px]">PDF</span>
+          </button>
+        </div>
+      )}
+
+      {f.descripcion && (
+        <div className="rounded-xl border border-verde/30 bg-verdesoft px-3.5 py-3">
+          <div className="flex items-center gap-1.5">
+            <Icon n="check-circle" s={15} className="text-verde" />
+            <p className="eyebrow text-verde">Texto institucional listo</p>
+          </div>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-ink2"
+             style={{ display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
+            {f.descripcion}
+          </p>
+          <button onClick={() => setDetalles(true)} className="mt-1.5 font-display text-[12px] font-semibold text-verde">Ver y ajustar</button>
+        </div>
+      )}
+
+      {/* Obligación: tarjetas, no un desplegable */}
+      <div>
+        <div className="mb-2 px-1">
+          <h3 className="eyebrow text-ink2">¿A qué obligación cuenta?</h3>
+          <p className="mt-0.5 text-[11px] leading-snug text-ink3">Viene marcada la sugerida: {sugerido.razon}.</p>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {OBLIGACIONES.map(x => {
+            const activo = Number(f.obligacionId) === x.id;
+            const esSugerida = sugerido.obligacionId === x.id;
+            return (
+              <button key={x.id} onClick={() => setF(p => ({ ...p, obligacionId:x.id, instancia:'', lugar:p.lugar }))}
+                className={cx('relative flex min-h-[86px] flex-col justify-between rounded-xl border-2 p-2.5 text-left transition active:scale-[0.98]',
+                  activo ? 'border-azure bg-azuresoft' : 'border-line bg-surface hover:bg-surface2')}>
+                {esSugerida && !activo && (
+                  <span className="absolute right-1.5 top-1.5 rounded-full bg-fucsiasoft px-1.5 py-0.5 font-display text-[9px] font-bold uppercase tracking-wide text-fucsia">Sugerida</span>
+                )}
+                <Icon n={x.icon} s={19} className={activo ? 'text-azure' : 'text-ink3'} />
+                <div>
+                  <span className={cx('font-mono text-[10.5px]', activo ? 'text-azure' : 'text-ink3')}>{x.cod}</span>
+                  <p className={cx('font-display text-[12.5px] font-semibold leading-tight', activo ? 'text-azure' : 'text-ink')}>{x.corto}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {espacios.length > 0 && (
+        <div>
+          <h3 className="eyebrow mb-2 px-1 text-ink2">Espacio o instancia</h3>
+          <div className="grid gap-1.5">
+            {espacios.map(v => (
+              <ChipSel key={v} activo={f.instancia === v}
+                onClick={() => setF(p => ({ ...p, instancia:p.instancia === v ? '' : v, titulo:p.titulo || `Sesión de ${v}` }))}>
+                {v}
+              </ChipSel>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <h3 className="eyebrow mb-2 px-1 text-ink2">Tipo de actividad</h3>
+        <div className="flex flex-wrap gap-1.5">
+          {TIPOS.map(t => (
+            <button key={t} onClick={() => up('tipo', t)}
+              className={cx('rounded-full border px-3 py-2 text-[12.5px] font-medium transition',
+                f.tipo === t ? 'border-azure bg-azure text-paper' : 'border-line2 bg-surface text-ink2 hover:bg-surface2')}>
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="eyebrow mb-2 px-1 text-ink2">Lugar</h3>
+        <div className="flex flex-wrap gap-1.5">
+          {lugares.map(l => (
+            <button key={l} onClick={() => { up('lugar', f.lugar === l ? '' : l); setLugarLibre(false); }}
+              className={cx('rounded-full border px-3 py-2 text-[12.5px] font-medium transition',
+                f.lugar === l ? 'border-azure bg-azure text-paper' : 'border-line2 bg-surface text-ink2 hover:bg-surface2')}>
+              {l}
+            </button>
+          ))}
+          <button onClick={() => setLugarLibre(v => !v)}
+            className={cx('rounded-full border px-3 py-2 text-[12.5px] font-medium transition',
+              lugarLibre ? 'border-azure bg-azuresoft text-azure' : 'border-dashed border-line2 bg-surface text-ink3')}>
+            Otro lugar
+          </button>
+        </div>
+        {lugarLibre && (
+          <input className="fld mt-2" id="cap-lugar" value={f.lugar} onChange={e => up('lugar', e.target.value)}
+                 placeholder="Vereda, institución, plataforma…" />
+        )}
+      </div>
+
+      <div>
+        <h3 className="eyebrow mb-2 px-1 text-ink2">Participantes</h3>
+        <div className="flex items-center gap-2">
+          <button onClick={() => up('participantes', Math.max(0, Number(f.participantes) - 1))} aria-label="Menos participantes"
+            className="flex h-11 w-11 flex-none items-center justify-center rounded-xl border border-line2 bg-surface text-ink2"><Icon n="minus" s={18} /></button>
+          <div className="flex h-11 min-w-[64px] flex-none items-center justify-center rounded-xl border border-line2 bg-surface px-3 font-display text-[18px] font-bold tnum">
+            {Number(f.participantes) || 0}
+          </div>
+          <button onClick={() => up('participantes', Number(f.participantes) + 1)} aria-label="Más participantes"
+            className="flex h-11 w-11 flex-none items-center justify-center rounded-xl border border-line2 bg-surface text-ink2"><Icon n="plus" s={18} /></button>
+          <div className="flex flex-1 flex-wrap gap-1.5">
+            {[5,10,15,20,30].map(n => (
+              <button key={n} onClick={() => up('participantes', n)}
+                className={cx('rounded-full border px-3 py-2 font-mono text-[12.5px] tnum transition',
+                  Number(f.participantes) === n ? 'border-azure bg-azure text-paper' : 'border-line2 bg-surface text-ink2')}>
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <button onClick={() => setDetalles(v => !v)}
+        className="flex w-full items-center justify-between rounded-xl border border-line bg-surface px-3.5 py-3 text-left">
+        <span className="font-display text-[13.5px] font-semibold">Más detalles <span className="font-normal text-ink3">— título, radicado, texto</span></span>
+        <Icon n={detalles ? 'chevron-up' : 'chevron-down'} s={18} className="text-ink3" />
+      </button>
+
+      {detalles && (
+        <Card className="space-y-3 p-4 anim-in">
+          <Campo label="Título de la actividad" hint="Si lo dejas vacío, la app usa la instancia o el tipo y la fecha.">
+            <input className="fld" id="cap-titulo" value={f.titulo} onChange={e => up('titulo', e.target.value)} placeholder="Sesión ordinaria del Comité…" />
+          </Campo>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Campo label="Fecha"><input type="date" className="fld" id="cap-fecha" value={f.fecha} onChange={e => up('fecha', e.target.value)} /></Campo>
+            <Campo label="Hora"><input type="time" className="fld" id="cap-hora" value={f.hora} onChange={e => up('hora', e.target.value)} /></Campo>
+          </div>
+          <Campo label="Instancia" hint="Nombre oficial del comité, consejo o mesa.">
+            <input className="fld" id="cap-instancia" value={f.instancia} onChange={e => up('instancia', e.target.value)} placeholder="Comité Municipal de…" />
+          </Campo>
+          <Campo label="Radicado" hint="PQRS, UNP o alerta, cuando aplique.">
+            <input className="fld" id="cap-radicado" value={f.radicado} onChange={e => up('radicado', e.target.value)} placeholder="2026-EE-0000" />
+          </Campo>
+          <Campo label="Nota de campo">
+            <textarea rows={3} className="fld resize-y leading-relaxed" id="cap-nota" value={f.notaCruda} onChange={e => up('notaCruda', e.target.value)}
+              placeholder="reunimos el comité, revisamos el plan y quedamos en que salud manda el informe antes del 30" />
+          </Campo>
+          <Boton icon="wand-2" variant="fucsia" className="w-full"
+            onClick={() => {
+              if (!f.notaCruda.trim()){ toast('Dicta o escribe primero la nota de campo.', 'ambar'); return; }
+              setF(p => ({ ...p, descripcion:redactarDesde(f, evs) }));
+              toast('Nota convertida a redacción institucional.', 'verde');
+            }}>Redactar institucional</Boton>
+          {f.descripcion && (
+            <Campo label="Texto que entra al acta y al informe">
+              <textarea rows={6} className="fld resize-y leading-relaxed" id="cap-desc" value={f.descripcion} onChange={e => up('descripcion', e.target.value)} />
+            </Campo>
+          )}
+        </Card>
+      )}
+
+      {/* Tercer toque, siempre a la vista */}
+      <div className="sticky z-10 -mx-4 border-t border-line bg-paper/95 px-4 py-3 backdrop-blur"
+           style={{ bottom:'calc(72px + env(safe-area-inset-bottom, 0px))' }}>
+        <button onClick={guardar} disabled={!listo}
+          className={cx('flex w-full items-center justify-center gap-2.5 rounded-2xl px-4 py-4 font-display text-[16px] font-bold transition active:scale-[0.99]',
+            listo ? 'bg-azure text-paper' : 'bg-surface2 text-ink3')}>
+          <Icon n="check" s={22} />
+          Guardar en {o.cod}
+          {evs.length > 0 && <span className="rounded-full bg-paper/25 px-2 py-0.5 font-mono text-[12px]">{evs.length}</span>}
+        </button>
+        {!listo && <p className="mt-1.5 text-center text-[11.5px] text-ink3">Graba una nota o toma una foto para habilitar el guardado.</p>}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   10. PANTALLA · ACTAS
+   ══════════════════════════════════════════════════════════════════ */
+const ORDEN_BASE = [
+  'Verificación del quórum e instalación de la sesión',
+  'Lectura y aprobación del orden del día',
+  'Seguimiento a compromisos de la sesión anterior',
+  'Desarrollo del tema central',
+  'Proposiciones y varios'
+];
+
+function actaNueva(st, base){
+  const anio = hoyISO().slice(0,4);
+  const n = st.actas.filter(a => (a.fecha||'').slice(0,4) === anio).length + 1;
+  const orden = ORDEN_BASE.slice();
+  return {
+    id:uid('acta'), consecutivo:String(n).padStart(3,'0'),
+    obligacionId:base ? base.obligacionId : 1,
+    instancia:base ? (base.instancia || base.titulo) : '',
+    fecha:base ? base.fecha : hoyISO(),
+    horaInicio:base ? (base.hora || '08:00') : '08:00', horaFin:'10:00',
+    lugar:base ? base.lugar : '', modalidad:'Presencial',
+    convoca:st.config.secretaria,
+    objetivo:base ? (base.descripcion || '').split('. ').slice(0,1).join('. ') + '.' : '',
+    ordenDia:orden,
+    desarrollo:orden.map((_,i) => ({ punto:i+1, texto:i === 3 && base ? base.descripcion : '' })),
+    compromisos:[], asistentes:[],
+    conclusiones:'La sesión se desarrolló en el marco del reglamento interno de la instancia. Se levanta la sesión en la hora señalada.',
+    evidencias:base ? (base.evidencias || []).slice() : [],
+    elaboradaPor:st.config.contratista, creadaEn:hoyISO()
+  };
+}
+
+function EditorActa({ acta, onGuardar, onCerrar }){
+  const { st } = useApp();
+  const [a, setA] = useState(acta);
+  const up = (k,v) => setA(p => ({ ...p, [k]:v }));
+
+  const evsDisponibles = useMemo(() => {
+    const ids = new Set(st.actividades.filter(x => x.fecha === a.fecha || x.obligacionId === Number(a.obligacionId)).flatMap(x => x.evidencias || []));
+    return st.evidencias.filter(e => ids.has(e.id));
+  }, [st.evidencias, st.actividades, a.fecha, a.obligacionId]);
+
+  function setOrden(i, v){
+    const orden = a.ordenDia.slice(); orden[i] = v;
+    setA(p => ({ ...p, ordenDia:orden }));
+  }
+  function addPunto(){
+    setA(p => ({ ...p, ordenDia:[...p.ordenDia, ''], desarrollo:[...p.desarrollo, { punto:p.ordenDia.length+1, texto:'' }] }));
+  }
+  function delPunto(i){
+    setA(p => {
+      const ordenDia = p.ordenDia.filter((_,k) => k !== i);
+      const desarrollo = p.ordenDia
+        .map((_,k) => ({ texto:(p.desarrollo[k] || {}).texto || '' }))
+        .filter((_,k) => k !== i)
+        .map((d,k) => ({ punto:k+1, texto:d.texto }));
+      return { ...p, ordenDia, desarrollo };
+    });
+  }
+  function setDesarrollo(i, texto){
+    setA(p => {
+      const d = p.ordenDia.map((_,k) => ({ punto:k+1, texto:(p.desarrollo[k] || {}).texto || '' }));
+      d[i] = { punto:i+1, texto };
+      return { ...p, desarrollo:d };
+    });
+  }
+  function redactarPunto(i){
+    const texto = (a.desarrollo[i] || {}).texto || '';
+    if (!texto.trim()) return;
+    setDesarrollo(i, redactarInstitucional(texto, { obligacionId:a.obligacionId, tipo:'Comité de política pública', fecha:a.fecha, lugar:a.lugar, instancia:a.instancia }));
+  }
+  const addFila = (k, obj) => setA(p => ({ ...p, [k]:[...(p[k]||[]), obj] }));
+  const setFila = (k, id, campo, v) => setA(p => ({ ...p, [k]:p[k].map(x => x.id === id ? { ...x, [campo]:v } : x) }));
+  const delFila = (k, id) => setA(p => ({ ...p, [k]:p[k].filter(x => x.id !== id) }));
+
+  return (
+    <div className="space-y-5">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Campo label="Acta N.º"><input className="fld tnum" id="ac-cons" value={a.consecutivo} onChange={e => up('consecutivo', e.target.value)} /></Campo>
+        <Campo label="Obligación">
+          <select className="fld" id="ac-obl" value={a.obligacionId} onChange={e => up('obligacionId', Number(e.target.value))}>
+            {OBLIGACIONES.map(o => <option key={o.id} value={o.id}>{o.cod} — {o.corto}</option>)}
+          </select>
+        </Campo>
+        <Campo label="Instancia" req className="sm:col-span-2">
+          <input className="fld" id="ac-inst" value={a.instancia} onChange={e => up('instancia', e.target.value)} placeholder="Consejo Territorial de Paz…" />
+        </Campo>
+        <Campo label="Fecha"><input type="date" className="fld" id="ac-fecha" value={a.fecha} onChange={e => up('fecha', e.target.value)} /></Campo>
+        <Campo label="Modalidad">
+          <select className="fld" id="ac-mod" value={a.modalidad} onChange={e => up('modalidad', e.target.value)}>
+            {['Presencial','Virtual','Mixta'].map(m => <option key={m}>{m}</option>)}
+          </select>
+        </Campo>
+        <Campo label="Hora de inicio"><input type="time" className="fld" id="ac-hi" value={a.horaInicio} onChange={e => up('horaInicio', e.target.value)} /></Campo>
+        <Campo label="Hora de cierre"><input type="time" className="fld" id="ac-hf" value={a.horaFin} onChange={e => up('horaFin', e.target.value)} /></Campo>
+        <Campo label="Lugar"><input className="fld" id="ac-lugar" value={a.lugar} onChange={e => up('lugar', e.target.value)} /></Campo>
+        <Campo label="Convoca"><input className="fld" id="ac-conv" value={a.convoca} onChange={e => up('convoca', e.target.value)} /></Campo>
+      </div>
+
+      <Campo label="Objetivo de la sesión">
+        <textarea rows={2} className="fld resize-y" id="ac-obj" value={a.objetivo} onChange={e => up('objetivo', e.target.value)} />
+      </Campo>
+
+      <section>
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="eyebrow text-ink2">Orden del día y desarrollo</h3>
+          <Boton icon="plus" variant="fantasma" onClick={addPunto}>Punto</Boton>
+        </div>
+        <div className="space-y-2.5">
+          {a.ordenDia.map((p, i) => (
+            <div key={i} className="rounded-xl border border-line bg-surface p-3">
+              <div className="flex items-center gap-2">
+                <span className="flex h-6 w-6 flex-none items-center justify-center rounded-md bg-azuresoft font-mono text-[11.5px] font-medium text-azure">{i+1}</span>
+                <input className="min-w-0 flex-1 border-0 bg-transparent font-display text-[14px] font-semibold outline-none" value={p}
+                  onChange={e => setOrden(i, e.target.value)} placeholder="Título del punto" />
+                <button onClick={() => delPunto(i)} aria-label="Eliminar punto" className="text-ink3 hover:text-rojo"><Icon n="trash-2" s={15} /></button>
+              </div>
+              <textarea rows={2} className="fld mt-2 resize-y text-[13.5px] leading-relaxed"
+                value={(a.desarrollo[i] || {}).texto || ''} onChange={e => setDesarrollo(i, e.target.value)}
+                placeholder="Qué pasó en este punto. Escríbelo como salga: luego se convierte a lenguaje institucional." />
+              <button onClick={() => redactarPunto(i)} className="mt-1.5 inline-flex items-center gap-1 text-[11.5px] font-semibold text-fucsia hover:underline">
+                <Icon n="wand-2" s={13} /> Redactar institucional
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="eyebrow text-ink2">Compromisos</h3>
+          <Boton icon="plus" variant="fantasma" onClick={() => addFila('compromisos', { id:uid('c'), descripcion:'', responsable:'', entidad:'', fecha:'', estado:'Pendiente' })}>Compromiso</Boton>
+        </div>
+        {(a.compromisos || []).length === 0
+          ? <p className="rounded-xl border border-dashed border-line2 px-4 py-5 text-center text-[13px] text-ink3">Sin compromisos. Se imprime la nota «la sesión no generó compromisos».</p>
+          : <div className="space-y-2">
+              {a.compromisos.map((c,i) => (
+                <div key={c.id} className="rounded-xl border border-line bg-surface p-3">
+                  <div className="flex items-start gap-2">
+                    <span className="mt-2 font-mono text-[11px] text-ink3">{i+1}</span>
+                    <textarea rows={2} className="fld flex-1 resize-y text-[13.5px]" value={c.descripcion} placeholder="Compromiso adquirido"
+                      onChange={e => setFila('compromisos', c.id, 'descripcion', e.target.value)} />
+                    <button onClick={() => delFila('compromisos', c.id)} aria-label="Eliminar compromiso" className="mt-2 text-ink3 hover:text-rojo"><Icon n="trash-2" s={15} /></button>
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    <input className="fld text-[13px]" placeholder="Responsable" value={c.responsable} onChange={e => setFila('compromisos', c.id, 'responsable', e.target.value)} />
+                    <input className="fld text-[13px]" placeholder="Entidad" value={c.entidad} onChange={e => setFila('compromisos', c.id, 'entidad', e.target.value)} />
+                    <input type="date" className="fld text-[13px]" value={c.fecha} onChange={e => setFila('compromisos', c.id, 'fecha', e.target.value)} />
+                    <select className="fld text-[13px]" value={c.estado} onChange={e => setFila('compromisos', c.id, 'estado', e.target.value)}>
+                      {['Pendiente','En trámite','Cumplido'].map(x => <option key={x}>{x}</option>)}
+                    </select>
+                  </div>
+                </div>
+              ))}
+            </div>}
+      </section>
+
+      <section>
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="eyebrow text-ink2">Asistentes</h3>
+          <Boton icon="user-plus" variant="fantasma" onClick={() => addFila('asistentes', { id:uid('as'), nombre:'', cargo:'', entidad:'', contacto:'' })}>Asistente</Boton>
+        </div>
+        {(a.asistentes || []).length === 0
+          ? <p className="rounded-xl border border-dashed border-line2 px-4 py-5 text-center text-[13px] text-ink3">Sin asistentes cargados: el acta remite a la planilla anexa.</p>
+          : <div className="space-y-2">
+              {a.asistentes.map(s => (
+                <div key={s.id} className="grid grid-cols-2 gap-2 rounded-xl border border-line bg-surface p-2.5 sm:grid-cols-7">
+                  <input className="fld text-[13px] sm:col-span-2" placeholder="Nombre" value={s.nombre} onChange={e => setFila('asistentes', s.id, 'nombre', e.target.value)} />
+                  <input className="fld text-[13px] sm:col-span-2" placeholder="Cargo" value={s.cargo} onChange={e => setFila('asistentes', s.id, 'cargo', e.target.value)} />
+                  <input className="fld text-[13px] sm:col-span-2" placeholder="Entidad" value={s.entidad} onChange={e => setFila('asistentes', s.id, 'entidad', e.target.value)} />
+                  <button onClick={() => delFila('asistentes', s.id)} aria-label="Quitar asistente" className="justify-self-end px-2 text-ink3 hover:text-rojo"><Icon n="trash-2" s={15} /></button>
+                </div>
+              ))}
+            </div>}
+      </section>
+
+      <section>
+        <h3 className="eyebrow mb-2 text-ink2">Anexo fotográfico — se compila al final del acta</h3>
+        {evsDisponibles.length === 0
+          ? <p className="rounded-xl border border-dashed border-line2 px-4 py-5 text-center text-[13px] text-ink3">No hay evidencias capturadas para esta fecha u obligación.</p>
+          : <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+              {evsDisponibles.map(e => {
+                const on = (a.evidencias || []).includes(e.id);
+                return (
+                  <button key={e.id} onClick={() => up('evidencias', on ? a.evidencias.filter(x => x !== e.id) : [...(a.evidencias||[]), e.id])}
+                    className={cx('overflow-hidden rounded-xl border text-left transition', on ? 'border-azure ring-2 ring-azure/30' : 'border-line hover:border-line2')}>
+                    {e.dataUrl ? <img src={e.dataUrl} alt={e.nombre} className="h-20 w-full object-cover" />
+                      : <div className="flex h-20 items-center justify-center bg-surface2 text-ink3"><Icon n="file-text" s={22} /></div>}
+                    <div className="flex items-center gap-1 p-1.5">
+                      <Icon n={on ? 'check-square' : 'square'} s={13} className={on ? 'text-azure' : 'text-ink3'} />
+                      <span className="truncate text-[10.5px] text-ink2">{e.nombre}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>}
+      </section>
+
+      <Campo label="Conclusiones y cierre">
+        <textarea rows={2} className="fld resize-y" id="ac-concl" value={a.conclusiones} onChange={e => up('conclusiones', e.target.value)} />
+      </Campo>
+
+      <div className="sticky bottom-0 -mx-4 flex gap-2 border-t border-line bg-paper px-4 py-3 sm:-mx-5 sm:px-5">
+        <Boton icon="check" onClick={() => onGuardar(a)} className="flex-1">Guardar acta</Boton>
+        <Boton variant="fantasma" onClick={onCerrar}>Cancelar</Boton>
+      </div>
+    </div>
+  );
+}
+
+function Actas({ pedido, limpiarPedido }){
+  const { st, setSt, toast, abrirDoc } = useApp();
+  const [edit, setEdit] = useState(null);
+
+  useEffect(() => {
+    if (!pedido) return;
+    if (pedido.desdeActividad){
+      const base = st.actividades.find(x => x.id === pedido.desdeActividad);
+      setEdit(actaNueva(st, base));
+    }
+    limpiarPedido();
+  }, [pedido]);
+
+  const guardar = a => {
+    setSt(p => ({ ...p, actas: p.actas.some(x => x.id === a.id) ? p.actas.map(x => x.id === a.id ? a : x) : [a, ...p.actas] }));
+    setEdit(null);
+    toast('Acta guardada. Ya puedes exportarla.', 'verde');
+  };
+  const eliminar = id => { setSt(p => ({ ...p, actas:p.actas.filter(x => x.id !== id) })); toast('Acta eliminada.', 'ambar'); };
+
+  const lista = [...st.actas].sort((a,b) => (b.fecha||'').localeCompare(a.fecha||''));
+
+  return (
+    <div className="space-y-4">
+      <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
+        <div>
+          <h2 className="font-display text-[16px] font-bold">Actas de comité</h2>
+          <p className="text-[12.5px] text-ink3">Orden del día, desarrollo, compromisos y anexo fotográfico al final.</p>
+        </div>
+        <Boton icon="file-plus" onClick={() => setEdit(actaNueva(st))}>Nueva acta</Boton>
+      </Card>
+
+      {lista.length === 0
+        ? <Vacio icon="file-text" titulo="Todavía no hay actas" texto="Crea un acta desde cero o genérala a partir de una actividad ya capturada." />
+        : <div className="space-y-2">
+            {lista.map(a => {
+              const o = obl(a.obligacionId);
+              const pend = (a.compromisos||[]).filter(c => c.estado !== 'Cumplido').length;
+              return (
+                <Card key={a.id} className="rail p-3.5 pl-4" style={{ '--rail':'rgb(var(--azure))' }}>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-[11.5px] text-ink3">ACTA {a.consecutivo}-{(a.fecha||'').slice(0,4)}</span>
+                        <Chip tone="azure">{o.cod}</Chip>
+                        {pend > 0 && <Chip tone="ambar">{pend} compromiso{pend === 1 ? '' : 's'} abierto{pend === 1 ? '' : 's'}</Chip>}
+                      </div>
+                      <p className="mt-1 font-display text-[14.5px] font-semibold leading-snug">{a.instancia || 'Sin instancia'}</p>
+                      <p className="mt-0.5 text-[12px] text-ink3">{fechaLarga(a.fecha)} · {a.lugar || 'sin lugar'} · {(a.evidencias||[]).length} anexos</p>
+                    </div>
+                    <div className="flex flex-none items-center gap-1">
+                      <button onClick={() => abrirDoc(construirActa(a, st))} className="rounded-lg border border-line2 bg-surface px-2.5 py-2 text-ink2 hover:bg-surface2" title="Ver y exportar"><Icon n="eye" s={16} /></button>
+                      <button onClick={() => setEdit(a)} className="rounded-lg border border-line2 bg-surface px-2.5 py-2 text-ink2 hover:bg-surface2" title="Editar"><Icon n="pencil" s={16} /></button>
+                      <button onClick={() => eliminar(a.id)} className="rounded-lg border border-line2 bg-surface px-2.5 py-2 text-ink3 hover:bg-rojosoft hover:text-rojo" title="Eliminar"><Icon n="trash-2" s={16} /></button>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>}
+
+      <Hoja abierta={!!edit} onCerrar={() => setEdit(null)} ancho="max-w-3xl"
+            titulo={edit ? `Acta N.º ${edit.consecutivo}` : ''} sub="Se numera automáticamente por año">
+        {edit && <EditorActa acta={edit} onGuardar={guardar} onCerrar={() => setEdit(null)} />}
+      </Hoja>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   11. PANTALLA · ENTREGABLES
+       Un toque por entregable. Cada botón abre la vista previa del
+       documento, ya armado con lo capturado en el período.
+   ══════════════════════════════════════════════════════════════════ */
+function VisorDiapositivas({ slides, st }){
+  const [i, setI] = useState(0);
+  const cont = useRef(null);
+  const [escala, setEscala] = useState(1);
+  const ANCHO = 1040;
+
+  useEffect(() => {
+    const medir = () => { if (cont.current) setEscala(Math.min(1, cont.current.clientWidth / ANCHO)); };
+    medir();
+    window.addEventListener('resize', medir);
+    return () => window.removeEventListener('resize', medir);
+  }, []);
+  useEffect(() => { if (i >= slides.length) setI(0); }, [slides.length]);
+
+  const actual = slides[Math.min(i, slides.length - 1)];
+  const html = useMemo(() => actual ? diapositivasHTML([actual], st) : '', [actual, st]);
+  if (!actual) return null;
+
+  return (
+    <div>
+      <div ref={cont} className="overflow-hidden rounded-xl border border-line bg-surface2 p-2">
+        <div style={{ height:(ANCHO * 9/16) * escala + 20 }}>
+          <div style={{ width:ANCHO, transform:`scale(${escala})`, transformOrigin:'top left' }} dangerouslySetInnerHTML={{ __html:html }} />
+        </div>
+      </div>
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <Boton icon="chevron-left" variant="linea" onClick={() => setI(Math.max(0, i-1))} disabled={i === 0}>Anterior</Boton>
+        <span className="font-mono text-[12px] tnum text-ink2">{i+1} / {slides.length}</span>
+        <Boton variant="linea" onClick={() => setI(Math.min(slides.length-1, i+1))} disabled={i >= slides.length-1}>Siguiente<Icon n="chevron-right" s={17} /></Boton>
+      </div>
+    </div>
+  );
+}
+
+function BotonExportar({ icon, titulo, sub, nota, tono = 'azure', onClick }){
+  const t = tono === 'fucsia'
+    ? 'border-fucsia/40 bg-fucsiasoft text-fucsia'
+    : tono === 'verde'
+      ? 'border-verde/40 bg-verdesoft text-verde'
+      : 'border-azure/40 bg-azuresoft text-azure';
+  return (
+    <button onClick={onClick}
+      className="flex w-full items-center gap-3.5 rounded-2xl border border-line bg-surface p-3.5 text-left shadow-card transition hover:bg-surface2 active:scale-[0.99]">
+      <span className={cx('flex h-14 w-14 flex-none items-center justify-center rounded-xl border-2', t)}><Icon n={icon} s={26} stroke={1.6} /></span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-display text-[15px] font-bold leading-tight">{titulo}</span>
+        <span className="mt-0.5 block text-[12.5px] leading-snug text-ink2">{sub}</span>
+        {nota && <span className="mt-1 block font-mono text-[11px] text-ink3">{nota}</span>}
+      </span>
+      <Icon n="chevron-right" s={20} className="flex-none text-ink3" />
+    </button>
+  );
+}
+
+function Entregables({ mes, setMes }){
+  const { st, setSt, abrirDoc, toast } = useApp();
+  const [verSlides, setVerSlides] = useState(false);
+  const [sel, setSel] = useState(null);
+
+  const acts = st.actividades.filter(a => mesDe(a.fecha) === mes);
+  const actasMes = st.actas.filter(a => mesDe(a.fecha) === mes).sort((a,b) => b.fecha.localeCompare(a.fecha));
+  const conDatos = OBLIGACIONES.filter(o => acts.some(a => a.obligacionId === o.id)).map(o => o.id);
+  const ids = sel || (conDatos.length ? conDatos : [1,3,5]);
+  const slides = useMemo(() => construirDiapositivas(mes, ids, st), [mes, ids, st]);
+  const meses = mesesDisponibles(st.actividades);
+  const totalEv = acts.reduce((n,a) => n + (a.evidencias || []).length, 0);
+  const cumplidas = OBLIGACIONES.filter(o => acts.filter(a => a.obligacionId === o.id).length >= o.meta).length;
+
+  const TIPOS_SESION = ['Comité de política pública','Consejo Territorial de Paz','Subcomité de Prevención','Mesa técnica'];
+
+  function actaDeUnClic(){
+    if (actasMes.length){ abrirDoc(construirActa(actasMes[0], st)); return; }
+    const delMes = st.actividades.filter(a => mesDe(a.fecha) === mes).sort((a,b) => b.fecha.localeCompare(a.fecha));
+    const base = delMes.find(a => TIPOS_SESION.includes(a.tipo)) || delMes[0];
+    if (!base){ toast('Aún no hay actividades del período para levantar el acta.', 'ambar'); return; }
+    const nueva = actaNueva(st, base);
+    setSt(p => ({ ...p, actas:[nueva, ...p.actas] }));
+    abrirDoc(construirActa(nueva, st));
+    toast('Acta borrador armada con la última sesión. Ajústala en Actas.', 'verde');
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="eyebrow mb-2 px-1 text-ink2">Período</h3>
+        <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth:'thin' }}>
+          {meses.map(m => (
+            <button key={m} onClick={() => setMes(m)}
+              className={cx('flex-none rounded-full border px-3.5 py-2 font-display text-[12.5px] font-semibold first-letter:uppercase transition',
+                mes === m ? 'border-azure bg-azure text-paper' : 'border-line2 bg-surface text-ink2 hover:bg-surface2')}>
+              {mesLargo(m)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-line bg-surface2 px-4 py-3">
+        <p className="text-[13px] leading-relaxed text-ink2">
+          <strong className="text-ink">{acts.length} actividades</strong> y <strong className="text-ink">{totalEv} evidencias</strong> capturadas
+          en {mesLargo(mes)}. {cumplidas} de 11 obligaciones alcanzaron la meta.
+        </p>
+      </div>
+
+      <div className="space-y-2.5">
+        <BotonExportar icon="file-text" titulo="Informe mensual de ejecución" tono="azure"
+          sub="Las 11 obligaciones con sus actividades, anexo fotográfico y certificación para la cuenta de cobro."
+          nota={`${acts.length} actividades · ${totalEv} evidencias`}
+          onClick={() => abrirDoc(construirInforme(mes, st))} />
+
+        <BotonExportar icon="presentation" titulo="Diapositivas ejecutivas" tono="fucsia"
+          sub="Portada, cifras, semáforo, una lámina por obligación con logros y fotos, compromisos y próximos pasos."
+          nota={`${slides.length} diapositivas`}
+          onClick={() => abrirDoc({ titulo:'Presentación ejecutiva — ' + mesLargo(mes), archivo:'Diapositivas_' + mes + '.doc',
+            html:diapositivasHTML(slides, st), esDiapositivas:true })} />
+
+        <BotonExportar icon="file-signature" titulo="Acta de comité" tono="verde"
+          sub={actasMes.length
+            ? `Última acta del período: ${actasMes[0].instancia}.`
+            : 'Se arma un borrador con la última sesión capturada y queda editable en Actas.'}
+          nota={actasMes.length ? `Acta ${actasMes[0].consecutivo} · ${fechaCorta(actasMes[0].fecha)}` : 'Borrador automático'}
+          onClick={actaDeUnClic} />
+      </div>
+
+      <Card className="p-4">
+        <h3 className="font-display text-[14.5px] font-bold">Qué va a salir en el informe</h3>
+        <div className="mt-2.5 grid gap-1.5">
+          {OBLIGACIONES.map(o => {
+            const n = acts.filter(a => a.obligacionId === o.id).length;
+            const e = estadoSem(n, o.meta);
+            return (
+              <div key={o.id} className="flex items-center gap-2.5 rounded-lg border border-line px-3 py-2">
+                <span className="font-mono text-[11px] text-ink3">{o.cod}</span>
+                <span className="min-w-0 flex-1 truncate text-[13px]">{o.corto}</span>
+                <span className={cx('h-2 w-2 flex-none rounded-full', SEM[e.k].dot)} />
+                <span className="w-12 flex-none text-right font-mono text-[11.5px] tnum text-ink2">{n}/{o.meta}</span>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+
+      <button onClick={() => setVerSlides(v => !v)}
+        className="flex w-full items-center justify-between rounded-xl border border-line bg-surface px-3.5 py-3 text-left">
+        <span className="font-display text-[13.5px] font-semibold">Previsualizar diapositivas <span className="font-normal text-ink3">— y elegir obligaciones</span></span>
+        <Icon n={verSlides ? 'chevron-up' : 'chevron-down'} s={18} className="text-ink3" />
+      </button>
+
+      {verSlides && (
+        <Card className="space-y-3 p-4 anim-in">
+          <div className="flex flex-wrap gap-1.5">
+            {OBLIGACIONES.map(o => {
+              const on = ids.includes(o.id);
+              return (
+                <button key={o.id} onClick={() => setSel(on ? ids.filter(x => x !== o.id) : [...ids, o.id].sort((a,b) => a-b))}
+                  className={cx('rounded-lg border px-2.5 py-1.5 font-mono text-[11.5px] transition',
+                    on ? 'border-azure bg-azuresoft text-azure' : 'border-line2 bg-surface text-ink3 hover:bg-surface2')}>
+                  {o.cod}
+                </button>
+              );
+            })}
+          </div>
+          <VisorDiapositivas slides={slides} st={st} />
+        </Card>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   12. PANTALLA · AJUSTES
+   ══════════════════════════════════════════════════════════════════ */
+function Ajustes(){
+  const { st, setSt, toast, persistido } = useApp();
+  const c = st.config;
+  const up = (k,v) => setSt(p => ({ ...p, config:{ ...p.config, [k]:v } }));
+
+  const campos = [
+    ['municipio','Municipio'], ['departamento','Departamento'], ['lema','Lema del municipio'],
+    ['secretaria','Secretaría'], ['dependencia','Dependencia o rol'],
+    ['contratista','Nombre del contratista'], ['cedula','Documento de identidad'],
+    ['contrato','N.º de contrato'], ['supervisor','Supervisor del contrato'], ['cargoSupervisor','Cargo del supervisor'],
+    ['valorMes','Valor mensual'], ['codigoFormato','Código del formato']
+  ];
+  const contacto = [
+    ['direccion','Dirección'], ['codigoPostal','Código postal'],
+    ['telefono','Teléfono'], ['correo','Correo institucional'], ['web','Sitio web']
+  ];
+  // Dependencias publicadas en el portal oficial del municipio.
+  const DEPENDENCIAS = ['Despacho del Alcalde', 'Secretaría General',
+    'Secretaría de Planeación e Infraestructura', 'Secretaría de Desarrollo Económico, Agroindustrial y Medio Ambiente'];
+
+  return (
+    <div className="space-y-4">
+      <Card className="p-4 space-y-3">
+        <div>
+          <h3 className="font-display text-[15.5px] font-bold">Datos del contrato</h3>
+          <p className="text-[12.5px] text-ink3">Encabezan todas las actas, informes y diapositivas que generes.</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {campos.map(([k,l]) => (
+            <Campo key={k} label={l}>
+              <input className="fld" id={'cfg-'+k} value={c[k] || ''} onChange={e => up(k, e.target.value)} />
+            </Campo>
+          ))}
+        </div>
+        <div>
+          <span className="eyebrow text-ink2">Dependencia — según el portal del municipio</span>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {DEPENDENCIAS.map(d => (
+              <button key={d} onClick={() => up('secretaria', d)}
+                className={cx('rounded-full border px-3 py-1.5 text-[12px] font-medium transition',
+                  c.secretaria === d ? 'border-azure bg-azure text-paper' : 'border-line2 bg-surface text-ink2 hover:bg-surface2')}>
+                {d}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1.5 text-[11.5px] leading-snug text-ink3">
+            Si tu contrato depende de otra oficina, escríbela en el campo Secretaría: estos son solo los atajos.
+          </p>
+        </div>
+        <Campo label="Objeto del contrato">
+          <textarea rows={3} className="fld resize-y text-[13.5px]" id="cfg-objeto" value={c.objeto} onChange={e => up('objeto', e.target.value)} />
+        </Campo>
+      </Card>
+
+      <Card className="p-4 space-y-3">
+        <div>
+          <h3 className="font-display text-[15.5px] font-bold">Contacto institucional</h3>
+          <p className="text-[12.5px] text-ink3">Va al pie de cada acta e informe. Viene con los datos publicados en {c.web || 'el portal del municipio'}.</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {contacto.map(([k,l]) => (
+            <Campo key={k} label={l}>
+              <input className="fld" id={'cfg-'+k} value={c[k] || ''} onChange={e => up(k, e.target.value)} />
+            </Campo>
+          ))}
+        </div>
+      </Card>
+
+      <Card className="p-4 space-y-3">
+        <h3 className="font-display text-[15.5px] font-bold">Apariencia</h3>
+        <div className="flex gap-1 rounded-xl border border-line bg-surface2 p-1">
+          {[['auto','Sistema','monitor'],['light','Claro','sun'],['dark','Oscuro','moon']].map(([k,l,ic]) => (
+            <button key={k} onClick={() => setSt(p => ({ ...p, tema:k }))}
+              className={cx('flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 font-display text-[13px] font-semibold transition',
+                st.tema === k ? 'bg-surface text-ink shadow-card' : 'text-ink2')}>
+              <Icon n={ic} s={15} />{l}
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      <Card className="p-4 space-y-3">
+        <h3 className="font-display text-[15.5px] font-bold">Datos</h3>
+        <div className="flex items-start gap-2 rounded-xl border border-line bg-surface2 p-3 text-[12.5px] leading-relaxed text-ink2">
+          <Icon n={persistido ? 'hard-drive' : 'alert-circle'} s={16} className={cx('mt-0.5 flex-none', persistido ? 'text-verde' : 'text-ambar')} />
+          <span>{persistido
+            ? 'La bitácora se guarda en este dispositivo. Las fotos se comprimen antes de almacenarse.'
+            : 'No se pudo escribir en el almacenamiento del navegador: los datos viven solo mientras la pestaña esté abierta.'}</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Boton icon="eraser" variant="linea" onClick={() => {
+            setSt(p => ({ ...p,
+              actividades:p.actividades.filter(a => !a.demo),
+              evidencias:p.evidencias.filter(e => !e.demo),
+              actas:p.actas.filter(a => !a.demo) }));
+            toast('Datos de ejemplo eliminados.', 'verde');
+          }}>Quitar datos de ejemplo</Boton>
+          <Boton icon="trash-2" variant="linea" onClick={() => {
+            if (!window.confirm('Se borran todas las actividades, evidencias y actas de este dispositivo. ¿Continuar?')) return;
+            setSt(p => ({ ...p, actividades:[], evidencias:[], actas:[] }));
+            toast('Bitácora vaciada.', 'ambar');
+          }}>Borrar toda la bitácora</Boton>
+        </div>
+        <p className="text-[12px] leading-relaxed text-ink3">
+          {st.actividades.length} actividades · {st.evidencias.length} evidencias · {st.actas.length} actas.
+          Los registros marcados como ejemplo están rotulados dentro de cada evidencia.
+        </p>
+      </Card>
+
+      <Card className="p-4">
+        <h3 className="font-display text-[15.5px] font-bold">Acerca de</h3>
+        <dl className="mt-2.5 grid gap-1.5">
+          {[['Aplicación', APP.nombre], ['Versión', APP.version], ['Editor', APP.editor],
+            ['Entidad', 'Alcaldía Municipal de ' + c.municipio + ', ' + c.departamento]].map(([k,v]) => (
+            <div key={k} className="flex items-baseline gap-3 border-b border-line pb-1.5 last:border-0">
+              <dt className="eyebrow w-24 flex-none text-ink3">{k}</dt>
+              <dd className="min-w-0 flex-1 text-[13px]">{v}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="mt-2.5 text-[12px] leading-relaxed text-ink3">
+          Desarrollada por {APP.editor} en {APP.anio}. Funciona sin conexión; los datos y las fotos se guardan
+          en este dispositivo y no salen de él hasta que tú exportas un documento.
+        </p>
+      </Card>
+
+      <Card className="p-4">
+        <h3 className="font-display text-[15.5px] font-bold">Las 11 obligaciones</h3>
+        <ol className="mt-2 space-y-2">
+          {OBLIGACIONES.map(o => (
+            <li key={o.id} className="flex gap-2.5 border-b border-line pb-2 last:border-0">
+              <span className="font-mono text-[11.5px] text-ink3">{o.cod}</span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[13px] leading-relaxed">{o.titulo}</p>
+                <p className="mt-0.5 text-[11.5px] text-ink3">{o.eje} · meta de referencia: {o.meta} actividades/mes</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </Card>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   13. VISOR DE DOCUMENTO — copiar a Word · imprimir · descargar
+   ══════════════════════════════════════════════════════════════════ */
+function VisorDocumento({ doc, onCerrar }){
+  const { toast } = useApp();
+  const hoja = useRef(null);
+  const [descargas, setDescargas] = useState(null);
+
+  // En el visor de artifacts la descarga la media la plataforma; en la PWA local es un enlace normal.
+  useEffect(() => {
+    let vivo = true;
+    (async () => {
+      try{
+        const d = (window.claude && window.claude.use) ? await window.claude.use('downloads') : null;
+        if (vivo) setDescargas(d);
+      }catch(e){ /* sin capacidad de descarga: quedan copiar e imprimir */ }
+    })();
+    return () => { vivo = false; };
+  }, []);
+
+  useEffect(() => {
+    document.body.classList.toggle('doc-open', !!doc);
+    return () => document.body.classList.remove('doc-open');
+  }, [doc]);
+  useEffect(() => {
+    const h = e => { if (e.key === 'Escape') onCerrar(); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [onCerrar]);
+  if (!doc) return null;
+
+  async function descargar(){
+    const html = envolverWord(doc.titulo, doc.html, ESTILOS_DOC);
+    if (descargas){
+      try{
+        await descargas.save({ filename:doc.archivo.replace(/\.doc$/, '.html'), data:html });
+        toast('Descargado. Ábrelo con Word y guárdalo como .docx.', 'verde');
+      }catch(e){
+        if (e && e.code === 'declined') return;
+        toast('No se pudo descargar el archivo; usa Copiar a Word.', 'ambar');
+      }
+      return;
+    }
+    const ok = descargarDoc(doc.archivo, html);
+    toast(ok ? 'Archivo .doc descargado.' : 'La descarga fue bloqueada; usa Copiar a Word.', ok ? 'verde' : 'ambar');
+  }
+
+  const copiar = async () => {
+    const ok = await copiarRico(envolverWord(doc.titulo, doc.html, ESTILOS_DOC), hoja.current ? hoja.current.innerText : '');
+    toast(ok ? 'Copiado. Pega en Word con Ctrl+V y conserva el formato.' : 'El navegador bloqueó el portapapeles; usa Imprimir.', ok ? 'verde' : 'ambar');
+  };
+
+  return (
+    <div className="doc-overlay fixed inset-0 z-50 overflow-y-auto bg-ink/60 px-0 py-0 sm:px-4 sm:py-6">
+      <div className="no-print sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-line bg-paper px-3 py-2.5"
+           style={{ paddingTop:'calc(10px + env(safe-area-inset-top, 0px))' }}>
+        <button onClick={onCerrar} aria-label="Cerrar documento" className="rounded-lg p-1.5 text-ink2 hover:bg-surface2"><Icon n="arrow-left" s={19} /></button>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-display text-[13.5px] font-semibold">{doc.titulo}</p>
+          <p className="text-[11px] text-ink3">Documento generado · listo para firma</p>
+        </div>
+        <Boton icon="copy" variant="linea" onClick={copiar}>Copiar a Word</Boton>
+        <Boton icon="printer" variant="linea" onClick={() => window.print()}>Imprimir / PDF</Boton>
+        {(descargas || !SANDBOX) && (
+          <Boton icon="download" onClick={descargar}>{descargas ? 'Descargar' : 'Descargar .doc'}</Boton>
+        )}
+      </div>
+      <div ref={hoja}
+           className={cx('doc-sheet mx-auto bg-white shadow-pop', doc.esDiapositivas ? 'p-3 sm:p-6' : 'doc p-5 sm:p-10')}
+           style={{ maxWidth:doc.esDiapositivas ? '1100px' : '820px' }}
+           dangerouslySetInnerHTML={{ __html:doc.html }} />
+      <div className="h-10" />
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   14. APLICACIÓN
+   ══════════════════════════════════════════════════════════════════ */
+/* Cuatro destinos y, en el centro, el (+) que abre la captura. */
+const NAV = [
+  ['inicio','Inicio','layout-dashboard'],
+  ['actas','Actas','file-text'],
+  ['entregables','Entregables','presentation'],
+  ['ajustes','Ajustes','settings']
+];
+
+function App(){
+  const [st, setSt] = useState(cargarEstado);
+  const [tab, setTab] = useState('inicio');
+  const [mes, setMes] = useState(mesDe(hoyISO()));
+  const [prefill, setPrefill] = useState(null);
+  const [pedido, setPedido] = useState(null);
+  const [doc, setDoc] = useState(null);
+  const [aviso, setAviso] = useState(null);
+  const [persistido, setPersistido] = useState(true);
+
+  useEffect(() => {
+    const ok = guardarEstado(st);
+    setPersistido(p => p === ok ? p : ok);
+  }, [st]);
+
+  useEffect(() => {
+    const r = document.documentElement;
+    if (st.tema === 'auto') r.removeAttribute('data-theme');
+    else r.setAttribute('data-theme', st.tema);
+  }, [st.tema]);
+
+  const toast = useCallback((texto, tono = 'verde') => {
+    setAviso({ texto, tono, id:Date.now() });
+    setTimeout(() => setAviso(a => (a && a.texto === texto) ? null : a), 4200);
+  }, []);
+
+  const ir = useCallback((destino, carga) => {
+    setTab(destino);
+    if (destino === 'capturar') setPrefill(carga || null);
+    if (destino === 'actas') setPedido(carga || null);
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }, []);
+
+  const ctx = useMemo(() => ({ st, setSt, toast, ir, abrirDoc:setDoc, persistido }), [st, toast, ir, persistido]);
+  const sinDatos = st.config.contratista.startsWith('«');
+  const meses = mesesDisponibles(st.actividades);
+
+  return (
+    <Ctx.Provider value={ctx}>
+      <div className="app-shell mx-auto flex min-h-full w-full max-w-5xl flex-col px-4 pb-32"
+           style={{ paddingTop:'env(safe-area-inset-top, 0px)' }}>
+
+        <header className="sticky z-20 -mx-4 mb-4 border-b border-line bg-paper/90 px-4 py-3 backdrop-blur"
+                style={{ top:'env(safe-area-inset-top, 0px)' }}>
+          <div className="flex items-center gap-3">
+            {window.ESCUDO_MUNICIPAL
+              ? <img src={window.ESCUDO_MUNICIPAL} alt={'Escudo de ' + st.config.municipio}
+                     className="h-10 w-10 flex-none rounded-lg bg-white object-contain p-px" />
+              : <div className="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-azure font-display text-[13px] font-bold text-paper">BT</div>}
+            <div className="min-w-0 flex-1">
+              <h1 className="font-display text-[15.5px] font-bold leading-none">{tab === 'capturar' ? 'Captura rápida' : 'Bitácora Territorial'}</h1>
+              <p className="mt-1 truncate text-[11.5px] text-ink3">{tab === 'capturar' ? 'Graba o fotografía; el resto ya viene puesto' : st.config.municipio + ' · ' + st.config.dependencia}</p>
+            </div>
+            {(tab === 'inicio' || tab === 'entregables') && (
+              <select value={mes} onChange={e => setMes(e.target.value)} aria-label="Período" id="hdr-mes"
+                className="rounded-lg border border-line2 bg-surface px-2.5 py-1.5 font-mono text-[12px] tnum">
+                {meses.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            )}
+          </div>
+        </header>
+
+        {sinDatos && tab !== 'ajustes' && (
+          <button onClick={() => setTab('ajustes')}
+            className="mb-4 flex w-full items-center gap-2.5 rounded-xl border border-fucsia/30 bg-fucsiasoft px-3.5 py-2.5 text-left">
+            <Icon n="user-cog" s={17} className="flex-none text-fucsia" />
+            <span className="flex-1 text-[12.5px] leading-snug text-ink">Completa los datos del contrato para que las actas e informes salgan con tu nombre.</span>
+            <Icon n="chevron-right" s={16} className="flex-none text-fucsia" />
+          </button>
+        )}
+
+        <main className="flex-1 anim-in" key={tab}>
+          {tab === 'inicio' && <Inicio mes={mes} setMes={setMes} />}
+          {tab === 'capturar' && <Capturar prefill={prefill} limpiarPrefill={() => setPrefill(null)} />}
+          {tab === 'actas' && <Actas pedido={pedido} limpiarPedido={() => setPedido(null)} />}
+          {tab === 'entregables' && <Entregables mes={mes} setMes={setMes} />}
+          {tab === 'ajustes' && <Ajustes />}
+        </main>
+
+        <footer className="mt-8 border-t border-line pt-4 text-[11.5px] leading-relaxed text-ink3">
+          {APP.nombre} {APP.version} · captura en campo, entregables con formato oficial.
+          Los registros rotulados como ejemplo son datos de demostración, no gestión real.
+          <span className="mt-1 block">Editor: <strong className="text-ink2">{APP.editor}</strong> · para la Alcaldía Municipal de {st.config.municipio}, {st.config.departamento}.</span>
+        </footer>
+      </div>
+
+      {aviso && (
+        <div className="fixed inset-x-0 z-40 flex justify-center px-4" style={{ bottom:'calc(106px + env(safe-area-inset-bottom, 0px))' }}>
+          <div className={cx('anim-in flex max-w-md items-start gap-2 rounded-xl border px-3.5 py-2.5 shadow-pop',
+            aviso.tono === 'verde' ? 'border-verde/30 bg-verdesoft text-verde' :
+            aviso.tono === 'rojo' ? 'border-rojo/30 bg-rojosoft text-rojo' : 'border-ambar/30 bg-ambarsoft text-ambar')}>
+            <Icon n={aviso.tono === 'verde' ? 'check-circle' : 'alert-circle'} s={16} className="mt-0.5 flex-none" />
+            <span className="text-[13px] font-medium leading-snug">{aviso.texto}</span>
+          </div>
+        </div>
+      )}
+
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper/95 backdrop-blur"
+           style={{ paddingBottom:'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="relative mx-auto flex max-w-5xl">
+          {NAV.map(([k,l,ic], i) => (
+            <React.Fragment key={k}>
+              {i === 2 && <span className="w-[84px] flex-none" aria-hidden="true" />}
+              <button onClick={() => ir(k)} aria-current={tab === k ? 'page' : undefined}
+                className={cx('flex flex-1 flex-col items-center gap-1 py-2.5 transition', tab === k ? 'text-azure' : 'text-ink3 hover:text-ink2')}>
+                <span className={cx('flex h-7 w-12 items-center justify-center rounded-full transition', tab === k ? 'bg-azuresoft' : '')}>
+                  <Icon n={ic} s={19} />
+                </span>
+                <span className="font-display text-[10.5px] font-semibold">{l}</span>
+              </button>
+            </React.Fragment>
+          ))}
+          <button onClick={() => ir(tab === 'capturar' ? 'inicio' : 'capturar')}
+            aria-label={tab === 'capturar' ? 'Cerrar captura' : 'Capturar evidencia'}
+            className={cx('absolute -top-7 left-1/2 flex h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full border-4 border-paper shadow-pop transition active:scale-95',
+              tab === 'capturar' ? 'bg-fucsia text-paper' : 'bg-azure text-paper')}>
+            <Icon n={tab === 'capturar' ? 'x' : 'plus'} s={30} stroke={2.4} />
+          </button>
+        </div>
+      </nav>
+
+      <VisorDocumento doc={doc} onCerrar={() => setDoc(null)} />
+    </Ctx.Provider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
+try{
+  if (location.protocol.startsWith('http') && window.self === window.top && 'serviceWorker' in navigator){
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+}catch(e){}
+</script>

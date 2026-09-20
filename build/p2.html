@@ -1,0 +1,291 @@
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+/* ══════════════════════════════════════════════════════════════════
+   1. MATRIZ CONTRACTUAL — las 11 obligaciones
+   ══════════════════════════════════════════════════════════════════ */
+const OBLIGACIONES = [
+  { id:1,  cod:'O-01', eje:'Políticas públicas', meta:2, icon:'users',
+    corto:'Comités de política pública',
+    titulo:'Preparar los espacios y realizar seguimiento a los comités de las políticas públicas LGBTI, Discapacidad y Afrodescendientes.',
+    politicas:['LGBTI','Discapacidad','Afrodescendientes'], entregable:'acta' },
+  { id:2,  cod:'O-02', eje:'Políticas públicas', meta:1, icon:'target',
+    corto:'Metas Juventud · Adulto Mayor · Mujer · MIAFF',
+    titulo:'Apoyar el cumplimiento de las metas establecidas en las políticas públicas de Juventud, Adulto Mayor, Mujer y MIAFF.',
+    politicas:['Juventud','Adulto Mayor','Mujer','MIAFF'], entregable:'informe' },
+  { id:3,  cod:'O-03', eje:'Paz y reconciliación', meta:1, icon:'bird',
+    corto:'Consejo Territorial de Paz',
+    titulo:'Coordinar el Consejo Territorial de Paz, Reconciliación y Convivencia, elaborar las actas y realizar seguimiento a los planes de acción.',
+    politicas:['Paz'], entregable:'acta' },
+  { id:4,  cod:'O-04', eje:'Derechos humanos', meta:3, icon:'siren',
+    corto:'Alertas Tempranas (SAT)',
+    titulo:'Realizar seguimiento y gestionar el cumplimiento de las recomendaciones de las Alertas Tempranas emitidas por la Defensoría del Pueblo.',
+    politicas:['DDHH'], entregable:'informe' },
+  { id:5,  cod:'O-05', eje:'Derechos humanos', meta:1, icon:'shield-check',
+    corto:'Subcomité de Prevención y Protección',
+    titulo:'Coordinar el Subcomité de Prevención, Protección y Garantías de No Repetición, levantar las actas y hacer seguimiento a los compromisos.',
+    politicas:['DDHH'], entregable:'acta' },
+  { id:6,  cod:'O-06', eje:'Paz y reconciliación', meta:1, icon:'map',
+    corto:'PDET · Pilar 8',
+    titulo:'Coordinar, hacer seguimiento y evaluar la iniciativa PDET Pilar 8 — Reconciliación, Convivencia y Construcción de Paz.',
+    politicas:['Paz','PDET'], entregable:'informe' },
+  { id:7,  cod:'O-07', eje:'Atención a la ciudadanía', meta:4, icon:'globe',
+    corto:'Población migrante',
+    titulo:'Atender y orientar a la población migrante que acude a la Secretaría, activando las rutas institucionales correspondientes.',
+    politicas:['Migrantes'], entregable:'informe' },
+  { id:8,  cod:'O-08', eje:'Protección', meta:2, icon:'file-lock',
+    corto:'Trámites UNP',
+    titulo:'Tramitar ante la Unidad Nacional de Protección las medidas de protección para líderes sociales, defensores de derechos humanos y personas en proceso de reincorporación.',
+    politicas:['Protección'], entregable:'informe' },
+  { id:9,  cod:'O-09', eje:'Protección', meta:1, icon:'route',
+    corto:'Rutas de protección',
+    titulo:'Activar las rutas de protección ante situaciones de riesgo extraordinario o extremo reportadas en el territorio.',
+    politicas:['Protección'], entregable:'informe' },
+  { id:10, cod:'O-10', eje:'Atención a la ciudadanía', meta:4, icon:'mail',
+    corto:'PQRS',
+    titulo:'Proyectar y dar respuesta a las peticiones, quejas, reclamos y sugerencias asignadas a la Secretaría dentro de los términos de ley.',
+    politicas:['PQRS'], entregable:'informe' },
+  { id:11, cod:'O-11', eje:'Transversal', meta:2, icon:'layers',
+    corto:'Obligaciones complementarias',
+    titulo:'Cumplir las demás obligaciones asignadas por el supervisor del contrato, acordes con la naturaleza del objeto contractual.',
+    politicas:['Transversal'], entregable:'informe' }
+];
+const obl = id => OBLIGACIONES.find(o => o.id === Number(id)) || OBLIGACIONES[10];
+
+const TIPOS = ['Comité de política pública','Consejo Territorial de Paz','Subcomité de Prevención','Mesa técnica','Jornada o evento','Atención a la ciudadanía','Trámite institucional','Visita territorial','Respuesta a PQRS','Capacitación','Seguimiento a compromisos'];
+
+const ACCESOS = [
+  { label:'Comité LGBTI',      ob:1,  tipo:'Comité de política pública', icon:'users',       instancia:'Comité Municipal de Política Pública LGBTI' },
+  { label:'Comité Discapacidad',ob:1, tipo:'Comité de política pública', icon:'accessibility',instancia:'Comité Municipal de Discapacidad' },
+  { label:'Comité Afro',       ob:1,  tipo:'Comité de política pública', icon:'users-round', instancia:'Comité de Comunidades Negras, Afrocolombianas, Raizales y Palenqueras' },
+  { label:'Consejo de Paz',    ob:3,  tipo:'Consejo Territorial de Paz', icon:'bird',        instancia:'Consejo Territorial de Paz, Reconciliación y Convivencia' },
+  { label:'Subcomité P.P.GNR', ob:5,  tipo:'Subcomité de Prevención',    icon:'shield-check',instancia:'Subcomité de Prevención, Protección y Garantías de No Repetición' },
+  { label:'Alerta SAT',        ob:4,  tipo:'Seguimiento a compromisos',  icon:'siren',       instancia:'' },
+  { label:'Atención migrante', ob:7,  tipo:'Atención a la ciudadanía',   icon:'globe',       instancia:'' },
+  { label:'Trámite UNP',       ob:8,  tipo:'Trámite institucional',      icon:'file-lock',   instancia:'' },
+  { label:'Ruta de protección',ob:9,  tipo:'Trámite institucional',      icon:'route',       instancia:'' },
+  { label:'PQRS',              ob:10, tipo:'Respuesta a PQRS',           icon:'mail',        instancia:'' }
+];
+
+/* Ficha de la aplicación. El nombre del editor sale de aquí a la cabecera,
+   al pie, a Ajustes y a las etiquetas <meta> que genera build.py. */
+const APP = {
+  nombre:'Bitácora Territorial',
+  version:'1.0.0',
+  editor:'Lab-S',
+  anio:'2026'
+};
+
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DIAS  = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+
+/* ══════════════════════════════════════════════════════════════════
+   2. UTILIDADES
+   ══════════════════════════════════════════════════════════════════ */
+const uid = p => (p||'id') + '_' + Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-3);
+const cx  = (...a) => a.filter(Boolean).join(' ');
+const hoyISO = () => new Date().toISOString().slice(0,10);
+const mesDe  = iso => (iso||'').slice(0,7);
+const parseISO = iso => { const [y,m,d] = (iso||hoyISO()).split('-').map(Number); return new Date(y, m-1, d||1); };
+const fechaLarga = iso => { const d = parseISO(iso); return `${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`; };
+const fechaCorta = iso => { const d = parseISO(iso); return `${String(d.getDate()).padStart(2,'0')} ${MESES[d.getMonth()].slice(0,3)}`; };
+const diaSemana  = iso => DIAS[parseISO(iso).getDay()];
+const mesLargo   = mk => { const [y,m] = mk.split('-'); return `${MESES[Number(m)-1]} de ${y}`; };
+const enLetras   = n => ['cero','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','once','doce','trece','catorce','quince','dieciséis','diecisiete','dieciocho','diecinueve','veinte'][n] || String(n);
+const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const pct = (a,b) => b <= 0 ? 0 : Math.min(100, Math.round((a/b)*100));
+
+function mesesDisponibles(acts){
+  const s = new Set(acts.map(a => mesDe(a.fecha)));
+  s.add(mesDe(hoyISO()));
+  return [...s].sort().reverse();
+}
+
+/* Estado del semáforo por obligación */
+function estadoSem(n, meta){
+  const p = pct(n, meta);
+  if (n === 0) return { k:'rojo',  label:'Sin registros', p:0 };
+  if (p >= 100) return { k:'verde', label:'Cumplida',     p };
+  if (p >= 40)  return { k:'ambar', label:'En avance',    p };
+  return { k:'rojo', label:'En riesgo', p };
+}
+const SEM = {
+  verde:{ rail:'rgb(var(--verde))', chip:'bg-verdesoft text-verde', dot:'bg-verde' },
+  ambar:{ rail:'rgb(var(--ambar))', chip:'bg-ambarsoft text-ambar', dot:'bg-ambar' },
+  rojo: { rail:'rgb(var(--rojo))',  chip:'bg-rojosoft text-rojo',   dot:'bg-rojo'  }
+};
+
+/* Compresión de fotos: el celular entrega 4 MB, el acta necesita 120 KB */
+function comprimirImagen(file, maxLado = 1280, calidad = 0.62){
+  return new Promise(resolve => {
+    const fr = new FileReader();
+    fr.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let { width:w, height:h } = img;
+        const f = Math.min(1, maxLado / Math.max(w,h));
+        w = Math.round(w*f); h = Math.round(h*f);
+        try{
+          const cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve({ dataUrl: cv.toDataURL('image/jpeg', calidad), w, h });
+        }catch(e){ resolve({ dataUrl: fr.result, w, h }); }
+      };
+      img.onerror = () => resolve({ dataUrl: fr.result, w:0, h:0 });
+      img.src = fr.result;
+    };
+    fr.onerror = () => resolve(null);
+    fr.readAsDataURL(file);
+  });
+}
+
+/* Marcadores de evidencia para los datos de ejemplo */
+function evidenciaDemo(titulo, sub, tono){
+  const fondo = tono === 'f' ? '#B32074' : '#0E5A78';
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="560" height="380" viewBox="0 0 560 380">' +
+    '<rect width="560" height="380" fill="#EDF1F2"/>' +
+    '<rect x="0" y="0" width="560" height="6" fill="'+fondo+'"/>' +
+    '<g opacity="0.14" fill="'+fondo+'"><circle cx="150" cy="200" r="66"/><circle cx="280" cy="230" r="52"/><circle cx="405" cy="195" r="72"/>' +
+    '<rect x="60" y="272" width="440" height="66" rx="10"/></g>' +
+    '<text x="28" y="60" font-family="Archivo, sans-serif" font-size="25" font-weight="700" fill="#13262C">'+esc(titulo)+'</text>' +
+    '<text x="28" y="90" font-family="IBM Plex Mono, monospace" font-size="15" fill="#4a5a60">'+esc(sub)+'</text>' +
+    '<text x="28" y="360" font-family="IBM Plex Mono, monospace" font-size="12" fill="#7a8a90">EVIDENCIA DE EJEMPLO — reemplazar con la foto real</text>' +
+    '</svg>';
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   3. REDACTOR INSTITUCIONAL (motor local, espejo del system prompt)
+      Convierte la nota de campo en prosa técnico-administrativa.
+   ══════════════════════════════════════════════════════════════════ */
+const SIGLAS = {
+  'pp':'política pública','sat':'Sistema de Alertas Tempranas','unp':'Unidad Nacional de Protección',
+  'pdet':'Programa de Desarrollo con Enfoque Territorial','pqrs':'peticiones, quejas, reclamos y sugerencias',
+  'ctp':'Consejo Territorial de Paz','ddhh':'derechos humanos','gnr':'garantías de no repetición',
+  'sec':'Secretaría','alc':'Alcaldía','mpio':'municipio','depto':'departamento','cmt':'comité',
+  'benef':'beneficiarios','poblac':'población','doc':'documento','info':'información','q':'que','x':'por',
+  'xq':'porque','tmb':'también','pers':'personas','reu':'reunión','seg':'seguimiento','aprox':'aproximadamente',
+  'lgtbi':'LGBTI','lgbti':'LGBTI','miaff':'MIAFF','icbf':'ICBF','ep':'Enlace de Paz'
+};
+const VERBOS = [
+  [/\b(hicimos|hice|realizamos|realicé)\b/gi,          'se llevó a cabo'],
+  [/\b(fuimos|fui|me desplacé|nos desplazamos)\b/gi,   'se efectuó desplazamiento institucional'],
+  [/\b(hablamos|hablé|charlamos|conversamos)\b/gi,     'se socializó'],
+  [/\b(quedamos en|acordamos|nos comprometimos a)\b/gi,'se acordó'],
+  [/\b(revisamos|revisé|miramos|miré)\b/gi,            'se efectuó revisión de'],
+  [/\b(ayudamos|ayudé|atendí|atendimos)\b/gi,          'se brindó atención y orientación a'],
+  [/\b(mandé|mandamos|envié|enviamos)\b/gi,            'se remitió'],
+  [/\b(llamé|llamamos)\b/gi,                           'se estableció comunicación con'],
+  [/\b(arreglamos|gestioné|gestionamos|resolvimos)\b/gi,'se gestionó'],
+  [/\b(explicamos|expliqué|contamos|conté)\b/gi,       'se presentó'],
+  [/\b(pedimos|pedí|solicitamos|solicité)\b/gi,        'se solicitó'],
+  [/\b(dijeron|dijo|comentaron)\b/gi,                  'manifestaron'],
+  [/\b(se quejaron|reclamaron)\b/gi,                   'expusieron su inconformidad respecto de'],
+  [/\b(no llegó|no llegaron|faltaron)\b/gi,            'no se registró asistencia de'],
+  [/\b(vino|vinieron|asistió mucha gente)\b/gi,        'asistieron'],
+  [/\bun poco\b/gi,'parcialmente'], [/\bmuy bien\b/gi,'de manera satisfactoria'],
+  [/\bcosas\b/gi,'aspectos'], [/\bgente\b/gi,'las personas participantes'], [/\bproblema\b/gi,'situación problemática'],
+  [/\bempezó\b/gi,'dio inicio'], [/\bterminó\b/gi,'finalizó'], [/\bsuper\b/gi,'']
+];
+const APERTURAS = {
+  'Comité de política pública':'se preparó y acompañó la sesión de',
+  'Consejo Territorial de Paz':'se coordinó y desarrolló la sesión del',
+  'Subcomité de Prevención':'se convocó y desarrolló la sesión del',
+  'Mesa técnica':'se desarrolló mesa técnica de articulación en el marco de',
+  'Jornada o evento':'se desarrolló jornada institucional correspondiente a',
+  'Atención a la ciudadanía':'se brindó atención, orientación y activación de ruta en el marco de',
+  'Trámite institucional':'se adelantó el trámite institucional correspondiente a',
+  'Visita territorial':'se realizó visita de verificación territorial en el marco de',
+  'Respuesta a PQRS':'se proyectó la respuesta de fondo correspondiente a',
+  'Capacitación':'se desarrolló proceso de formación y capacitación sobre',
+  'Seguimiento a compromisos':'se adelantó seguimiento a los compromisos derivados de'
+};
+
+function redactarInstitucional(nota, ctx = {}){
+  let t = String(nota || '').trim();
+  if (!t) return '';
+  t = t.replace(/\s+/g,' ');
+  t = t.replace(/\b([a-záéíóúñ]+)\b/gi, w => {
+    const k = w.toLowerCase();
+    return Object.prototype.hasOwnProperty.call(SIGLAS,k) ? SIGLAS[k] : w;
+  });
+  VERBOS.forEach(([re,rep]) => { t = t.replace(re, rep); });
+  t = t.charAt(0).toLowerCase() + t.slice(1);
+  t = t.replace(/\s+([,.;])/g,'$1').replace(/\s{2,}/g,' ').replace(/[.\s]+$/,'');
+
+  const o = obl(ctx.obligacionId || 11);
+  const apertura = APERTURAS[ctx.tipo] || 'se adelantó la actividad correspondiente a';
+  const lugar = ctx.lugar ? ` en ${ctx.lugar}` : '';
+  const fecha = ctx.fecha ? `el día ${diaSemana(ctx.fecha)} ${fechaLarga(ctx.fecha)}` : 'en la fecha de la presente';
+  const instancia = ctx.instancia || o.corto;
+
+  const p1 = `En cumplimiento de la obligación contractual N.º ${o.id} — ${o.titulo.replace(/\.$/,'')} —, ${fecha}${lugar} ${apertura} ${instancia}.`;
+  const p2 = `Durante el desarrollo de la actividad ${t}.`;
+  const partes = [p1, p2];
+
+  if (ctx.participantes > 0)
+    partes.push(`Se registró la participación de ${enLetras(ctx.participantes)} (${ctx.participantes}) ${ctx.participantes === 1 ? 'persona' : 'personas'}, conforme consta en la planilla de asistencia anexa.`);
+  if (ctx.compromisos > 0)
+    partes.push(`De la sesión se derivaron ${enLetras(ctx.compromisos)} (${ctx.compromisos}) compromisos institucionales, cuyo seguimiento queda a cargo de esta dependencia.`);
+  if (ctx.evidencias > 0)
+    partes.push(`Como soporte se anexan ${enLetras(ctx.evidencias)} (${ctx.evidencias}) registros de evidencia documental y fotográfica.`);
+
+  partes.push('Lo anterior se reporta para efectos del seguimiento a la ejecución contractual y del informe mensual de actividades.');
+  return partes.join(' ');
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   2.b AUTOCOMPLETADO — lo repetitivo lo pone la app, no el pulgar
+   ══════════════════════════════════════════════════════════════════ */
+const diasDesde = iso => Math.round((parseISO(hoyISO()) - parseISO(iso)) / 86400000);
+function fechaRelativa(iso){
+  const d = diasDesde(iso);
+  if (d <= 0) return 'hoy';
+  if (d === 1) return 'ayer';
+  if (d < 7) return `hace ${d} días`;
+  return fechaCorta(iso);
+}
+
+const masFrecuente = (lista) => {
+  const c = {};
+  lista.filter(Boolean).forEach(v => { c[v] = (c[v] || 0) + 1; });
+  let mejor = null, n = 0;
+  Object.keys(c).forEach(k => { if (c[k] > n){ n = c[k]; mejor = k; } });
+  return mejor;
+};
+
+/* Sugiere obligación, tipo, lugar e instancia a partir de lo que la usuaria
+   ya viene registrando. Sin historia, cae en la primera obligación. */
+function sugerirContexto(acts){
+  const recientes = acts.filter(a => diasDesde(a.fecha) <= 60).slice(0, 40);
+  if (!recientes.length) return { obligacionId:1, tipo:TIPOS[0], lugar:'', instancia:'', razon:'valor por defecto' };
+  const obligacionId = Number(masFrecuente(recientes.map(a => a.obligacionId))) || 1;
+  const delMismo = recientes.filter(a => a.obligacionId === obligacionId);
+  return {
+    obligacionId,
+    tipo: masFrecuente(delMismo.map(a => a.tipo)) || TIPOS[0],
+    lugar: masFrecuente(delMismo.map(a => a.lugar)) || '',
+    instancia: masFrecuente(delMismo.map(a => a.instancia)) || '',
+    razon: `lo más frecuente de tus últimos ${recientes.length} registros`
+  };
+}
+
+/* Lugares que ya usó, para elegirlos con el pulgar en vez de escribirlos */
+function lugaresFrecuentes(acts, obligacionId, max = 4){
+  const propios = acts.filter(a => a.obligacionId === Number(obligacionId) && a.lugar);
+  const otros = acts.filter(a => a.obligacionId !== Number(obligacionId) && a.lugar);
+  const vistos = [];
+  [...propios, ...otros].forEach(a => { if (!vistos.includes(a.lugar)) vistos.push(a.lugar); });
+  return vistos.slice(0, max);
+}
+
+/* Instancias oficiales ya usadas en esa obligación, más las de los accesos directos */
+function instanciasFrecuentes(acts, obligacionId, max = 4){
+  const deAccesos = ACCESOS.filter(x => x.ob === Number(obligacionId) && x.instancia).map(x => x.instancia);
+  const deHistoria = acts.filter(a => a.obligacionId === Number(obligacionId) && a.instancia).map(a => a.instancia);
+  const vistos = [];
+  [...deHistoria, ...deAccesos].forEach(v => { if (!vistos.includes(v)) vistos.push(v); });
+  return vistos.slice(0, max);
+}
+</script>

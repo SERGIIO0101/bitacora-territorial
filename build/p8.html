@@ -1,0 +1,321 @@
+<script type="text/babel" data-presets="react">
+/* ══════════════════════════════════════════════════════════════════
+   11. PANTALLA · ENTREGABLES
+       Un toque por entregable. Cada botón abre la vista previa del
+       documento, ya armado con lo capturado en el período.
+   ══════════════════════════════════════════════════════════════════ */
+function VisorDiapositivas({ slides, st }){
+  const [i, setI] = useState(0);
+  const cont = useRef(null);
+  const [escala, setEscala] = useState(1);
+  const ANCHO = 1040;
+
+  useEffect(() => {
+    const medir = () => { if (cont.current) setEscala(Math.min(1, cont.current.clientWidth / ANCHO)); };
+    medir();
+    window.addEventListener('resize', medir);
+    return () => window.removeEventListener('resize', medir);
+  }, []);
+  useEffect(() => { if (i >= slides.length) setI(0); }, [slides.length]);
+
+  const actual = slides[Math.min(i, slides.length - 1)];
+  const html = useMemo(() => actual ? diapositivasHTML([actual], st) : '', [actual, st]);
+  if (!actual) return null;
+
+  return (
+    <div>
+      <div ref={cont} className="overflow-hidden rounded-xl border border-line bg-surface2 p-2">
+        <div style={{ height:(ANCHO * 9/16) * escala + 20 }}>
+          <div style={{ width:ANCHO, transform:`scale(${escala})`, transformOrigin:'top left' }} dangerouslySetInnerHTML={{ __html:html }} />
+        </div>
+      </div>
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <Boton icon="chevron-left" variant="linea" onClick={() => setI(Math.max(0, i-1))} disabled={i === 0}>Anterior</Boton>
+        <span className="font-mono text-[12px] tnum text-ink2">{i+1} / {slides.length}</span>
+        <Boton variant="linea" onClick={() => setI(Math.min(slides.length-1, i+1))} disabled={i >= slides.length-1}>Siguiente<Icon n="chevron-right" s={17} /></Boton>
+      </div>
+    </div>
+  );
+}
+
+function BotonExportar({ icon, titulo, sub, nota, tono = 'azure', onClick }){
+  const t = tono === 'fucsia'
+    ? 'border-fucsia/40 bg-fucsiasoft text-fucsia'
+    : tono === 'verde'
+      ? 'border-verde/40 bg-verdesoft text-verde'
+      : 'border-azure/40 bg-azuresoft text-azure';
+  return (
+    <button onClick={onClick}
+      className="flex w-full items-center gap-3.5 rounded-2xl border border-line bg-surface p-3.5 text-left shadow-card transition hover:bg-surface2 active:scale-[0.99]">
+      <span className={cx('flex h-14 w-14 flex-none items-center justify-center rounded-xl border-2', t)}><Icon n={icon} s={26} stroke={1.6} /></span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-display text-[15px] font-bold leading-tight">{titulo}</span>
+        <span className="mt-0.5 block text-[12.5px] leading-snug text-ink2">{sub}</span>
+        {nota && <span className="mt-1 block font-mono text-[11px] text-ink3">{nota}</span>}
+      </span>
+      <Icon n="chevron-right" s={20} className="flex-none text-ink3" />
+    </button>
+  );
+}
+
+function Entregables({ mes, setMes }){
+  const { st, setSt, abrirDoc, toast } = useApp();
+  const [verSlides, setVerSlides] = useState(false);
+  const [sel, setSel] = useState(null);
+
+  const acts = st.actividades.filter(a => mesDe(a.fecha) === mes);
+  const actasMes = st.actas.filter(a => mesDe(a.fecha) === mes).sort((a,b) => b.fecha.localeCompare(a.fecha));
+  const conDatos = OBLIGACIONES.filter(o => acts.some(a => a.obligacionId === o.id)).map(o => o.id);
+  const ids = sel || (conDatos.length ? conDatos : [1,3,5]);
+  const slides = useMemo(() => construirDiapositivas(mes, ids, st), [mes, ids, st]);
+  const meses = mesesDisponibles(st.actividades);
+  const totalEv = acts.reduce((n,a) => n + (a.evidencias || []).length, 0);
+  const cumplidas = OBLIGACIONES.filter(o => acts.filter(a => a.obligacionId === o.id).length >= o.meta).length;
+
+  const TIPOS_SESION = ['Comité de política pública','Consejo Territorial de Paz','Subcomité de Prevención','Mesa técnica'];
+
+  function actaDeUnClic(){
+    if (actasMes.length){ abrirDoc(construirActa(actasMes[0], st)); return; }
+    const delMes = st.actividades.filter(a => mesDe(a.fecha) === mes).sort((a,b) => b.fecha.localeCompare(a.fecha));
+    const base = delMes.find(a => TIPOS_SESION.includes(a.tipo)) || delMes[0];
+    if (!base){ toast('Aún no hay actividades del período para levantar el acta.', 'ambar'); return; }
+    const nueva = actaNueva(st, base);
+    setSt(p => ({ ...p, actas:[nueva, ...p.actas] }));
+    abrirDoc(construirActa(nueva, st));
+    toast('Acta borrador armada con la última sesión. Ajústala en Actas.', 'verde');
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="eyebrow mb-2 px-1 text-ink2">Período</h3>
+        <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth:'thin' }}>
+          {meses.map(m => (
+            <button key={m} onClick={() => setMes(m)}
+              className={cx('flex-none rounded-full border px-3.5 py-2 font-display text-[12.5px] font-semibold first-letter:uppercase transition',
+                mes === m ? 'border-azure bg-azure text-paper' : 'border-line2 bg-surface text-ink2 hover:bg-surface2')}>
+              {mesLargo(m)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-line bg-surface2 px-4 py-3">
+        <p className="text-[13px] leading-relaxed text-ink2">
+          <strong className="text-ink">{acts.length} actividades</strong> y <strong className="text-ink">{totalEv} evidencias</strong> capturadas
+          en {mesLargo(mes)}. {cumplidas} de 11 obligaciones alcanzaron la meta.
+        </p>
+      </div>
+
+      <div className="space-y-2.5">
+        <BotonExportar icon="file-text" titulo="Informe mensual de ejecución" tono="azure"
+          sub="Las 11 obligaciones con sus actividades, anexo fotográfico y certificación para la cuenta de cobro."
+          nota={`${acts.length} actividades · ${totalEv} evidencias`}
+          onClick={() => abrirDoc(construirInforme(mes, st))} />
+
+        <BotonExportar icon="presentation" titulo="Diapositivas ejecutivas" tono="fucsia"
+          sub="Portada, cifras, semáforo, una lámina por obligación con logros y fotos, compromisos y próximos pasos."
+          nota={`${slides.length} diapositivas`}
+          onClick={() => abrirDoc({ titulo:'Presentación ejecutiva — ' + mesLargo(mes), archivo:'Diapositivas_' + mes + '.doc',
+            html:diapositivasHTML(slides, st), esDiapositivas:true })} />
+
+        <BotonExportar icon="file-signature" titulo="Acta de comité" tono="verde"
+          sub={actasMes.length
+            ? `Última acta del período: ${actasMes[0].instancia}.`
+            : 'Se arma un borrador con la última sesión capturada y queda editable en Actas.'}
+          nota={actasMes.length ? `Acta ${actasMes[0].consecutivo} · ${fechaCorta(actasMes[0].fecha)}` : 'Borrador automático'}
+          onClick={actaDeUnClic} />
+      </div>
+
+      <Card className="p-4">
+        <h3 className="font-display text-[14.5px] font-bold">Qué va a salir en el informe</h3>
+        <div className="mt-2.5 grid gap-1.5">
+          {OBLIGACIONES.map(o => {
+            const n = acts.filter(a => a.obligacionId === o.id).length;
+            const e = estadoSem(n, o.meta);
+            return (
+              <div key={o.id} className="flex items-center gap-2.5 rounded-lg border border-line px-3 py-2">
+                <span className="font-mono text-[11px] text-ink3">{o.cod}</span>
+                <span className="min-w-0 flex-1 truncate text-[13px]">{o.corto}</span>
+                <span className={cx('h-2 w-2 flex-none rounded-full', SEM[e.k].dot)} />
+                <span className="w-12 flex-none text-right font-mono text-[11.5px] tnum text-ink2">{n}/{o.meta}</span>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+
+      <button onClick={() => setVerSlides(v => !v)}
+        className="flex w-full items-center justify-between rounded-xl border border-line bg-surface px-3.5 py-3 text-left">
+        <span className="font-display text-[13.5px] font-semibold">Previsualizar diapositivas <span className="font-normal text-ink3">— y elegir obligaciones</span></span>
+        <Icon n={verSlides ? 'chevron-up' : 'chevron-down'} s={18} className="text-ink3" />
+      </button>
+
+      {verSlides && (
+        <Card className="space-y-3 p-4 anim-in">
+          <div className="flex flex-wrap gap-1.5">
+            {OBLIGACIONES.map(o => {
+              const on = ids.includes(o.id);
+              return (
+                <button key={o.id} onClick={() => setSel(on ? ids.filter(x => x !== o.id) : [...ids, o.id].sort((a,b) => a-b))}
+                  className={cx('rounded-lg border px-2.5 py-1.5 font-mono text-[11.5px] transition',
+                    on ? 'border-azure bg-azuresoft text-azure' : 'border-line2 bg-surface text-ink3 hover:bg-surface2')}>
+                  {o.cod}
+                </button>
+              );
+            })}
+          </div>
+          <VisorDiapositivas slides={slides} st={st} />
+        </Card>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   12. PANTALLA · AJUSTES
+   ══════════════════════════════════════════════════════════════════ */
+function Ajustes(){
+  const { st, setSt, toast, persistido } = useApp();
+  const c = st.config;
+  const up = (k,v) => setSt(p => ({ ...p, config:{ ...p.config, [k]:v } }));
+
+  const campos = [
+    ['municipio','Municipio'], ['departamento','Departamento'], ['lema','Lema del municipio'],
+    ['secretaria','Secretaría'], ['dependencia','Dependencia o rol'],
+    ['contratista','Nombre del contratista'], ['cedula','Documento de identidad'],
+    ['contrato','N.º de contrato'], ['supervisor','Supervisor del contrato'], ['cargoSupervisor','Cargo del supervisor'],
+    ['valorMes','Valor mensual'], ['codigoFormato','Código del formato']
+  ];
+  const contacto = [
+    ['direccion','Dirección'], ['codigoPostal','Código postal'],
+    ['telefono','Teléfono'], ['correo','Correo institucional'], ['web','Sitio web']
+  ];
+  // Dependencias publicadas en el portal oficial del municipio.
+  const DEPENDENCIAS = ['Despacho del Alcalde', 'Secretaría General',
+    'Secretaría de Planeación e Infraestructura', 'Secretaría de Desarrollo Económico, Agroindustrial y Medio Ambiente'];
+
+  return (
+    <div className="space-y-4">
+      <Card className="p-4 space-y-3">
+        <div>
+          <h3 className="font-display text-[15.5px] font-bold">Datos del contrato</h3>
+          <p className="text-[12.5px] text-ink3">Encabezan todas las actas, informes y diapositivas que generes.</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {campos.map(([k,l]) => (
+            <Campo key={k} label={l}>
+              <input className="fld" id={'cfg-'+k} value={c[k] || ''} onChange={e => up(k, e.target.value)} />
+            </Campo>
+          ))}
+        </div>
+        <div>
+          <span className="eyebrow text-ink2">Dependencia — según el portal del municipio</span>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {DEPENDENCIAS.map(d => (
+              <button key={d} onClick={() => up('secretaria', d)}
+                className={cx('rounded-full border px-3 py-1.5 text-[12px] font-medium transition',
+                  c.secretaria === d ? 'border-azure bg-azure text-paper' : 'border-line2 bg-surface text-ink2 hover:bg-surface2')}>
+                {d}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1.5 text-[11.5px] leading-snug text-ink3">
+            Si tu contrato depende de otra oficina, escríbela en el campo Secretaría: estos son solo los atajos.
+          </p>
+        </div>
+        <Campo label="Objeto del contrato">
+          <textarea rows={3} className="fld resize-y text-[13.5px]" id="cfg-objeto" value={c.objeto} onChange={e => up('objeto', e.target.value)} />
+        </Campo>
+      </Card>
+
+      <Card className="p-4 space-y-3">
+        <div>
+          <h3 className="font-display text-[15.5px] font-bold">Contacto institucional</h3>
+          <p className="text-[12.5px] text-ink3">Va al pie de cada acta e informe. Viene con los datos publicados en {c.web || 'el portal del municipio'}.</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {contacto.map(([k,l]) => (
+            <Campo key={k} label={l}>
+              <input className="fld" id={'cfg-'+k} value={c[k] || ''} onChange={e => up(k, e.target.value)} />
+            </Campo>
+          ))}
+        </div>
+      </Card>
+
+      <Card className="p-4 space-y-3">
+        <h3 className="font-display text-[15.5px] font-bold">Apariencia</h3>
+        <div className="flex gap-1 rounded-xl border border-line bg-surface2 p-1">
+          {[['auto','Sistema','monitor'],['light','Claro','sun'],['dark','Oscuro','moon']].map(([k,l,ic]) => (
+            <button key={k} onClick={() => setSt(p => ({ ...p, tema:k }))}
+              className={cx('flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-2 font-display text-[13px] font-semibold transition',
+                st.tema === k ? 'bg-surface text-ink shadow-card' : 'text-ink2')}>
+              <Icon n={ic} s={15} />{l}
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      <Card className="p-4 space-y-3">
+        <h3 className="font-display text-[15.5px] font-bold">Datos</h3>
+        <div className="flex items-start gap-2 rounded-xl border border-line bg-surface2 p-3 text-[12.5px] leading-relaxed text-ink2">
+          <Icon n={persistido ? 'hard-drive' : 'alert-circle'} s={16} className={cx('mt-0.5 flex-none', persistido ? 'text-verde' : 'text-ambar')} />
+          <span>{persistido
+            ? 'La bitácora se guarda en este dispositivo. Las fotos se comprimen antes de almacenarse.'
+            : 'No se pudo escribir en el almacenamiento del navegador: los datos viven solo mientras la pestaña esté abierta.'}</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Boton icon="eraser" variant="linea" onClick={() => {
+            setSt(p => ({ ...p,
+              actividades:p.actividades.filter(a => !a.demo),
+              evidencias:p.evidencias.filter(e => !e.demo),
+              actas:p.actas.filter(a => !a.demo) }));
+            toast('Datos de ejemplo eliminados.', 'verde');
+          }}>Quitar datos de ejemplo</Boton>
+          <Boton icon="trash-2" variant="linea" onClick={() => {
+            if (!window.confirm('Se borran todas las actividades, evidencias y actas de este dispositivo. ¿Continuar?')) return;
+            setSt(p => ({ ...p, actividades:[], evidencias:[], actas:[] }));
+            toast('Bitácora vaciada.', 'ambar');
+          }}>Borrar toda la bitácora</Boton>
+        </div>
+        <p className="text-[12px] leading-relaxed text-ink3">
+          {st.actividades.length} actividades · {st.evidencias.length} evidencias · {st.actas.length} actas.
+          Los registros marcados como ejemplo están rotulados dentro de cada evidencia.
+        </p>
+      </Card>
+
+      <Card className="p-4">
+        <h3 className="font-display text-[15.5px] font-bold">Acerca de</h3>
+        <dl className="mt-2.5 grid gap-1.5">
+          {[['Aplicación', APP.nombre], ['Versión', APP.version], ['Editor', APP.editor],
+            ['Entidad', 'Alcaldía Municipal de ' + c.municipio + ', ' + c.departamento]].map(([k,v]) => (
+            <div key={k} className="flex items-baseline gap-3 border-b border-line pb-1.5 last:border-0">
+              <dt className="eyebrow w-24 flex-none text-ink3">{k}</dt>
+              <dd className="min-w-0 flex-1 text-[13px]">{v}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="mt-2.5 text-[12px] leading-relaxed text-ink3">
+          Desarrollada por {APP.editor} en {APP.anio}. Funciona sin conexión; los datos y las fotos se guardan
+          en este dispositivo y no salen de él hasta que tú exportas un documento.
+        </p>
+      </Card>
+
+      <Card className="p-4">
+        <h3 className="font-display text-[15.5px] font-bold">Las 11 obligaciones</h3>
+        <ol className="mt-2 space-y-2">
+          {OBLIGACIONES.map(o => (
+            <li key={o.id} className="flex gap-2.5 border-b border-line pb-2 last:border-0">
+              <span className="font-mono text-[11.5px] text-ink3">{o.cod}</span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[13px] leading-relaxed">{o.titulo}</p>
+                <p className="mt-0.5 text-[11.5px] text-ink3">{o.eje} · meta de referencia: {o.meta} actividades/mes</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </Card>
+    </div>
+  );
+}
+</script>
