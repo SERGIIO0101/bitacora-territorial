@@ -1,6 +1,6 @@
 # Bitácora Territorial
 
-**Versión 1.1.0 · Editor: Lab-S · Alcaldía Municipal de Simití, Bolívar**
+**Versión 1.1.1 · Editor: Lab-S · Alcaldía Municipal de Simití, Bolívar**
 
 PWA para una referente territorial de alcaldía municipal: capturar evidencias desde el celular durante la
 jornada y sacar los entregables oficiales —actas de comité, diapositivas ejecutivas e informe mensual de

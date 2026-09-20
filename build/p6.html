@@ -99,8 +99,16 @@ function Capturar({ prefill, limpiarPrefill }){
       };
       r.onerror = ev => {
         setGrabando(false); setParcial('');
-        if (ev && ev.error === 'not-allowed') toast('El micrófono está bloqueado para este sitio.', 'rojo');
-        else if (ev && ev.error !== 'aborted' && ev.error !== 'no-speech') toast('No se pudo capturar el audio.', 'rojo');
+        const err = ev && ev.error;
+        // Micrófono denegado o navegador sin servicio de dictado (Brave, Firefox):
+        // se abre el campo de texto para que la captura no se quede bloqueada.
+        if (err === 'not-allowed' || err === 'service-not-allowed'){
+          setDetalles(true);
+          toast('Sin micrófono aquí. Escribe la nota abajo: se redacta igual.', 'ambar');
+        } else if (err && err !== 'aborted' && err !== 'no-speech'){
+          setDetalles(true);
+          toast('No se pudo capturar el audio. Escribe la nota abajo.', 'ambar');
+        }
       };
       r.onend = () => {
         setGrabando(false); setParcial('');
@@ -172,7 +180,7 @@ function Capturar({ prefill, limpiarPrefill }){
       <div className="flex gap-2.5">
         <BotonGigante icon={grabando ? 'square' : 'mic'} tono="fucsia" activo={grabando}
           titulo={grabando ? 'Escuchando…' : 'Grabar nota'}
-          sub={grabando ? 'Termina al hacer pausa' : soportaVoz ? 'Dicta y se redacta sola' : 'Escribe en Más detalles'}
+          sub={grabando ? 'Termina al hacer pausa' : soportaVoz ? 'Dicta y se redacta sola' : 'Aquí no hay dictado: toca para escribir'}
           onClick={alternarVoz} aria-pressed={grabando} />
         <BotonGigante icon="camera" titulo="Tomar foto" sub={evs.length ? `${evs.length} en esta captura` : 'Acta, asistencia, evento'}
           onClick={() => fotoRef.current.click()} />
